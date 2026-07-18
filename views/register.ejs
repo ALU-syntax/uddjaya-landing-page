@@ -26,18 +26,18 @@
         <section class="register-shell" aria-labelledby="register-title">
             <div class="brand-panel">
                 <img class="brand-logo" src="/img/logo-cream.png" alt="UD DJAYA">
-                <h1 id="register-title">Registrasi Membership</h1>
+                <h2 id="register-title"><%= title %></h2>
                 <p>#HariHariBerdjaya</p>
             </div>
 
             <form class="register-form" action="/membership/register/<%= registrationLink.code %>" method="post">
                 <div class="form-field">
-                    <label for="name">Nama</label>
+                    <label for="name">Nama <span class="required-mark">*</span></label>
                     <input id="name" name="name" type="text" autocomplete="name" placeholder="contoh: Djayadi" required>
                 </div>
 
                 <div class="form-field">
-                    <label for="phone">Nomor Telepon</label>
+                    <label for="phone">Nomor Telepon <span class="required-mark">*</span></label>
                     <input
                         id="phone"
                         class="js-digits-only"
@@ -53,27 +53,27 @@
                 </div>
 
                 <div class="form-field">
-                    <label for="email">Email</label>
+                    <label for="email">Email <span class="required-mark">*</span></label>
                     <input id="email" name="email" type="email" autocomplete="email" required>
                 </div>
 
                 <div class="form-field">
-                    <label for="birth_date">Tanggal Lahir</label>
+                    <label for="birth_date">Tanggal Lahir <span class="required-mark">*</span></label>
                     <input id="birth_date" name="birth_date" type="date" required>
                 </div>
 
                 <div class="form-field">
-                    <label for="gender">Gender</label>
+                    <label for="gender">Gender <span class="required-mark">*</span></label>
                     <select id="gender" name="gender" required>
                         <option value="" selected disabled>Pilih gender</option>
-                        <option value="laki-laki">Laki laki</option>
+                        <option value="laki-laki">Laki-laki</option>
                         <option value="perempuan">Perempuan</option>
                     </select>
                 </div>
 
                 <div class="form-field">
                     <label for="community">Community</label>
-                    <select id="community" class="js-community-select" name="community_id" required>
+                    <select id="community" class="js-community-select" name="community_id">
                         <option value="" selected disabled>Pilih community</option>
                         <% (communities || []).forEach((community) => { %>
                             <option value="<%= community.id %>"><%= community.name %></option>

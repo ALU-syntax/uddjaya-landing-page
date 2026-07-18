@@ -20,11 +20,10 @@ body {
 .register-page {
     min-height: 100vh;
     display: grid;
-    place-items: center;
+    align-content: center;
+    justify-items: center;
     padding: 32px 18px;
-    background:
-        linear-gradient(140deg, rgba(200, 61, 59, 0.92), rgba(132, 36, 55, 0.82)),
-        url('/img/logo.png') center 10% / min(420px, 82vw) no-repeat;
+    background: linear-gradient(140deg, rgba(200, 61, 59, 0.92), rgba(132, 36, 55, 0.82));
 }
 
 .register-shell {
@@ -53,13 +52,6 @@ body {
     margin-bottom: auto;
 }
 
-.brand-panel h1 {
-    margin: 0;
-    font-size: 36px;
-    line-height: 1.08;
-    font-weight: 700;
-}
-
 .brand-panel p {
     margin: 14px 0 0;
     font-size: 16px;
@@ -82,6 +74,10 @@ body {
     font-size: 14px;
     font-weight: 500;
     color: #5b2d2b;
+}
+
+.required-mark {
+    color: #c83d3b;
 }
 
 .form-field input,
@@ -167,11 +163,12 @@ body {
 @media (max-width: 760px) {
     .register-page {
         align-items: stretch;
+        align-content: stretch;
         padding: 0;
     }
 
     .register-shell {
-        min-height: 100vh;
+        min-height: auto;
         grid-template-columns: 1fr;
         border-radius: 0;
     }
@@ -184,10 +181,6 @@ body {
     .brand-logo {
         width: 112px;
         margin-bottom: 30px;
-    }
-
-    .brand-panel h1 {
-        font-size: 28px;
     }
 
     .register-form {

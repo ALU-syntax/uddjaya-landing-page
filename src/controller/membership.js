@@ -1,6 +1,70 @@
 import asyncHandler from 'express-async-handler';
+import { z } from 'zod';
 
 import pool from '../config/mysql.js';
+
+const genderOptions = ['laki-laki', 'perempuan'];
+
+const requiredString = (fieldName, validate = (schema) => schema) =>
+  z.preprocess(
+    (value) => (typeof value === 'string' ? value.trim() : ''),
+    validate(z.string().min(1, `${fieldName} wajib diisi.`)),
+  );
+
+const optionalString = (validate = (schema) => schema) =>
+  z.preprocess(
+    (value) => (typeof value === 'string' ? value.trim() : ''),
+    validate(z.string()),
+  );
+
+function isValidDateInput(value) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+
+  if (!match) {
+    return false;
+  }
+
+  const [, year, month, day] = match.map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+
+  return (
+    date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month - 1 &&
+    date.getUTCDate() === day
+  );
+}
+
+const registrationSchema = z.object({
+  name: requiredString('Nama'),
+  phone: requiredString('Nomor telepon', (schema) =>
+    schema.regex(
+      /^08\d{0,11}$/,
+      'Nomor telepon harus diawali 08, hanya boleh angka, dan maksimal 13 digit.',
+    ),
+  ),
+  email: requiredString('Email', (schema) =>
+    schema.email('Format email tidak valid.'),
+  ),
+  birth_date: requiredString('Tanggal lahir', (schema) =>
+    schema.refine(
+      isValidDateInput,
+      'Tanggal lahir harus berupa tanggal valid dengan format YYYY-MM-DD.',
+    ),
+  ),
+  gender: requiredString('Gender', (schema) =>
+    schema.refine(
+      (value) => genderOptions.includes(value),
+      'Gender tidak valid.',
+    ),
+  ),
+  community_id: optionalString(),
+  referral: optionalString((schema) =>
+    schema.regex(
+      /^\d{0,13}$/,
+      'Referral hanya boleh angka dan maksimal 13 digit.',
+    ),
+  ),
+});
 
 async function findRegistrationLinkByCode(code) {
   const [rows] = await pool.query(
@@ -47,6 +111,17 @@ const store = asyncHandler(async (req, res) => {
     return sendRegistrationLinkNotFound(res);
   }
 
+  const validation = registrationSchema.safeParse(req.body);
+
+  if (!validation.success) {
+    return res.status(400).json({
+      message:
+        validation.error.issues[0]?.message ??
+        'Data registrasi membership tidak valid.',
+      errors: validation.error.flatten().fieldErrors,
+    });
+  }
+
   const {
     name,
     phone,
@@ -55,42 +130,7 @@ const store = asyncHandler(async (req, res) => {
     gender,
     community_id: communityId,
     referral,
-  } = req.body;
-
-  const phonePattern = /^\d{1,13}$/;
-  const referralPattern = /^\d{0,13}$/;
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const genderOptions = ['laki-laki', 'perempuan'];
-
-  if (!name || !phone || !email || !birthDate || !gender || !communityId) {
-    return res.status(400).json({
-      message: 'Semua field wajib diisi kecuali referral.',
-    });
-  }
-
-  if (!phonePattern.test(phone)) {
-    return res.status(400).json({
-      message: 'Nomor telepon hanya boleh angka dan maksimal 13 digit.',
-    });
-  }
-
-  if (!emailPattern.test(email)) {
-    return res.status(400).json({
-      message: 'Format email tidak valid.',
-    });
-  }
-
-  if (!genderOptions.includes(gender)) {
-    return res.status(400).json({
-      message: 'Gender tidak valid.',
-    });
-  }
-
-  if (referral && !referralPattern.test(referral)) {
-    return res.status(400).json({
-      message: 'Referral hanya boleh angka dan maksimal 13 digit.',
-    });
-  }
+  } = validation.data;
 
   return res.status(201).json({
     message: 'Registrasi membership berhasil.',
@@ -100,7 +140,7 @@ const store = asyncHandler(async (req, res) => {
       email,
       birthDate,
       gender,
-      communityId,
+      communityId: communityId || null,
       outletName: registrationLink.outlet_name,
       referral: referral || null,
     },
