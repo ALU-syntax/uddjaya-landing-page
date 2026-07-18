@@ -30,7 +30,7 @@
                 <p>#HariHariBerdjaya</p>
             </div>
 
-            <form class="register-form" action="/membership/register" method="post">
+            <form class="register-form" action="/membership/register/<%= registrationLink.code %>" method="post">
                 <div class="form-field">
                     <label for="name">Nama</label>
                     <input id="name" name="name" type="text" autocomplete="name" placeholder="contoh: Djayadi" required>

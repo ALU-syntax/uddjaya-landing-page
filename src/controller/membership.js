@@ -1,13 +1,52 @@
 import asyncHandler from 'express-async-handler';
 
+import pool from '../config/mysql.js';
+
+async function findRegistrationLinkByCode(code) {
+  const [rows] = await pool.query(
+    `
+      SELECT
+        membership_registration_links.id,
+        membership_registration_links.name,
+        membership_registration_links.code,
+        membership_registration_links.outlet_id,
+        outlets.name AS outlet_name
+      FROM membership_registration_links
+      JOIN outlets ON outlets.id = membership_registration_links.outlet_id
+      WHERE membership_registration_links.code = ?
+      LIMIT 1
+    `,
+    [code],
+  );
+
+  return rows[0] ?? null;
+}
+
+function sendRegistrationLinkNotFound(res) {
+  return res.status(404).send('Link registrasi membership tidak ditemukan.');
+}
+
 const register = asyncHandler(async (req, res) => {
+  const registrationLink = await findRegistrationLinkByCode(req.params.code);
+
+  if (!registrationLink) {
+    return sendRegistrationLinkNotFound(res);
+  }
+
   res.render('register', {
-    title: 'Registrasi Membership',
+    title: `Registrasi Membership ${registrationLink.name}`,
     communities: [],
+    registrationLink,
   });
 });
 
 const store = asyncHandler(async (req, res) => {
+  const registrationLink = await findRegistrationLinkByCode(req.params.code);
+
+  if (!registrationLink) {
+    return sendRegistrationLinkNotFound(res);
+  }
+
   const {
     name,
     phone,
@@ -62,6 +101,7 @@ const store = asyncHandler(async (req, res) => {
       birthDate,
       gender,
       communityId,
+      outletName: registrationLink.outlet_name,
       referral: referral || null,
     },
   });
