@@ -7,6 +7,7 @@ import helmet from 'helmet';
 
 import pool from './config/mysql.js';
 import indexRouter from './routes/index.js';
+import membershipRouter from './routes/membership.js';
 
 const app = express();
 
@@ -31,6 +32,7 @@ app.use(
         scriptSrc: [
           "'self'",
           'https://cdn.jsdelivr.net',
+          'https://cdnjs.cloudflare.com',
           'https://esm.sh',
         ],
         scriptSrcAttr: ["'none'"],
@@ -64,6 +66,12 @@ app.use(
   }),
 );
 
+// app.use(
+//   express.json({
+//     limit: '50kb',
+//   }),
+// );
+
 app.use(
   express.urlencoded({
     extended: false,
@@ -78,6 +86,7 @@ app.use(
 );
 
 app.use('/', indexRouter);
+app.use('/membership', membershipRouter);
 
 app.use((req, res) => {
   return res.status(404).send('Halaman tidak ditemukan.');

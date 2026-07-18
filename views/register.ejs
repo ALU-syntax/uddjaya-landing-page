@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Registrasi membership UD DJAYA">
+    <meta name="keywords" content="UD DJAYA, Membership, Registrasi">
+    <meta name="author" content="UD DJAYA">
+    <meta name="theme-color" content="#c83d3b">
+    <meta property="og:title" content="Registrasi Membership UD DJAYA">
+    <meta property="og:description" content="Daftar membership UD DJAYA">
+    <meta property="og:url" content="https://www.uddjaya.com">
+    <meta property="og:type" content="website">
+
+    <link rel="icon" href="/img/logo.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/css/vendor/normalize.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/css/select2.min.css">
+    <link rel="stylesheet" href="/css/register.css">
+
+    <title><%= title %> | UD DJAYA</title>
+</head>
+
+<body>
+    <main class="register-page">
+        <section class="register-shell" aria-labelledby="register-title">
+            <div class="brand-panel">
+                <img class="brand-logo" src="/img/logo-cream.png" alt="UD DJAYA">
+                <h1 id="register-title">Registrasi Membership</h1>
+                <p>#HariHariBerdjaya</p>
+            </div>
+
+            <form class="register-form" action="/membership/register" method="post">
+                <div class="form-field">
+                    <label for="name">Nama</label>
+                    <input id="name" name="name" type="text" autocomplete="name" placeholder="contoh: Djayadi" required>
+                </div>
+
+                <div class="form-field">
+                    <label for="phone">Nomor Telepon</label>
+                    <input
+                        id="phone"
+                        class="js-digits-only"
+                        name="phone"
+                        type="number"
+                        inputmode="numeric"
+                        min="0"
+                        max="9999999999999"
+                        data-maxlength="13"
+                        autocomplete="tel"
+                        required
+                    >
+                </div>
+
+                <div class="form-field">
+                    <label for="email">Email</label>
+                    <input id="email" name="email" type="email" autocomplete="email" required>
+                </div>
+
+                <div class="form-field">
+                    <label for="birth_date">Tanggal Lahir</label>
+                    <input id="birth_date" name="birth_date" type="date" required>
+                </div>
+
+                <div class="form-field">
+                    <label for="gender">Gender</label>
+                    <select id="gender" name="gender" required>
+                        <option value="" selected disabled>Pilih gender</option>
+                        <option value="laki-laki">Laki laki</option>
+                        <option value="perempuan">Perempuan</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label for="community">Community</label>
+                    <select id="community" class="js-community-select" name="community_id" required>
+                        <option value="" selected disabled>Pilih community</option>
+                        <% (communities || []).forEach((community) => { %>
+                            <option value="<%= community.id %>"><%= community.name %></option>
+                        <% }) %>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label for="referral">Referral</label>
+                    <input
+                        id="referral"
+                        class="js-digits-only"
+                        name="referral"
+                        type="text"
+                        inputmode="numeric"
+                        maxlength="13"
+                        pattern="[0-9]{0,13}"
+                        autocomplete="off"
+                    >
+                </div>
+
+                <button class="submit-button" type="submit">Daftar Membership</button>
+            </form>
+        </section>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/js/select2.min.js" defer></script>
+    <script src="/js/register.js" defer></script>
+</body>
+
+</html>
