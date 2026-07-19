@@ -132,6 +132,47 @@ function setSubmitting(form, isSubmitting) {
         : submitButton.dataset.defaultText;
 }
 
+function resetCommunityOptions(select) {
+    select.replaceChildren(new Option('Pilih community', '', true, true));
+    select.options[0].disabled = true;
+}
+
+async function loadCommunities(form) {
+    const select = form.querySelector('.js-community-select');
+
+    if (!select) {
+        return;
+    }
+
+    resetCommunityOptions(select);
+    select.disabled = true;
+
+    try {
+        const response = await fetch(`${form.action.replace(/\/$/, '')}/communities`, {
+            headers: {
+                Accept: 'application/json',
+            },
+        });
+        const payload = await parseResponse(response);
+
+        if (!response.ok) {
+            throw new Error(payload.message ?? 'Gagal memuat community.');
+        }
+
+        (payload.data ?? []).forEach((community) => {
+            select.add(new Option(community.name, community.id));
+        });
+    } catch (error) {
+        showToast('error', error.message || 'Gagal memuat community.');
+    } finally {
+        select.disabled = false;
+
+        if (window.jQuery?.fn?.select2) {
+            window.jQuery(select).trigger('change');
+        }
+    }
+}
+
 document.querySelectorAll('.register-form').forEach((form) => {
     form.querySelectorAll('input, select, textarea').forEach((control) => {
         control.addEventListener('input', () => clearFieldError(control));
@@ -182,11 +223,19 @@ document.querySelectorAll('.register-form').forEach((form) => {
 
 window.addEventListener('DOMContentLoaded', () => {
     if (!window.jQuery?.fn?.select2) {
+        document.querySelectorAll('.register-form').forEach((form) => {
+            loadCommunities(form);
+        });
+
         return;
     }
 
     window.jQuery('.js-community-select').select2({
         placeholder: 'Pilih community',
         width: '100%',
+    });
+
+    document.querySelectorAll('.register-form').forEach((form) => {
+        loadCommunities(form);
     });
 });

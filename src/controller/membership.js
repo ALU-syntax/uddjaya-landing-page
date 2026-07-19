@@ -105,6 +105,22 @@ async function findUsedCustomerContacts(phone, email) {
   };
 }
 
+async function findCommunitiesByOutletId(outletId) {
+  const [communities] = await pool.query(
+    `
+      SELECT id, name
+      FROM communities
+      WHERE outlet_id = ?
+        AND status = 1
+        AND deleted_at IS NULL
+      ORDER BY name ASC
+    `,
+    [outletId],
+  );
+
+  return communities;
+}
+
 function sendRegistrationLinkNotFound(res) {
   return res.status(404).send('Link registrasi membership tidak ditemukan.');
 }
@@ -120,6 +136,20 @@ const register = asyncHandler(async (req, res) => {
     title: `Registrasi Membership ${registrationLink.name}`,
     communities: [],
     registrationLink,
+  });
+});
+
+const communities = asyncHandler(async (req, res) => {
+  const registrationLink = await findRegistrationLinkByCode(req.params.code);
+
+  if (!registrationLink) {
+    return res.status(404).json({
+      message: 'Link registrasi membership tidak ditemukan.',
+    });
+  }
+
+  return res.json({
+    data: await findCommunitiesByOutletId(registrationLink.outlet_id),
   });
 });
 
@@ -189,6 +219,7 @@ const store = asyncHandler(async (req, res) => {
 });
 
 export default {
+  communities,
   register,
   store,
 };
