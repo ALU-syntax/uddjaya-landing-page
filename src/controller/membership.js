@@ -109,6 +109,22 @@ async function findCustomerByPhone(phone) {
   return customers[0] ?? null;
 }
 
+async function findActivePettyCashByOutletId(outletId) {
+  const [pettyCashes] = await pool.query(
+    `
+      SELECT user_id_started
+      FROM petty_cashes
+      WHERE outlet_id = ?
+        AND user_id_ended IS NULL
+      ORDER BY open DESC, id DESC
+      LIMIT 1
+    `,
+    [outletId],
+  );
+
+  return pettyCashes[0] ?? null;
+}
+
 async function findUsedCustomerContacts(phone, email) {
   const [customers] = await pool.query(
     `
@@ -240,6 +256,16 @@ const store = asyncHandler(async (req, res) => {
     community_id: communityId,
     referral,
   } = validation.data;
+
+  const activePettyCash = await findActivePettyCashByOutletId(
+    registrationLink.outlet_id,
+  );
+
+  if (!activePettyCash) {
+    return res.status(400).json({
+      message: 'Store telah tutup, silahkan daftar kembali besok ya warga',
+    });
+  }
 
   const usedContacts = await findUsedCustomerContacts(phone, email);
 
