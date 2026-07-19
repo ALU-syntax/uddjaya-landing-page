@@ -1,5 +1,5 @@
 import express from 'express';
-import membershipController from '../controller/membership.js';
+import membershipController from '../controller/membership.controller.js';
 
 const router = express.Router();
 
