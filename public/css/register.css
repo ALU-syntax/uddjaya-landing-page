@@ -100,9 +100,22 @@ body {
     box-shadow: 0 0 0 3px rgba(200, 61, 59, 0.16);
 }
 
+.form-field.is-invalid input,
+.form-field.is-invalid select {
+    border-color: #c83d3b;
+    box-shadow: 0 0 0 3px rgba(200, 61, 59, 0.16);
+}
+
 .form-field input:invalid:not(:placeholder-shown),
 .form-field select:invalid:not(:focus) {
     border-color: #c83d3b;
+}
+
+.field-error {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.35;
+    color: #b83332;
 }
 
 .select2-container {
@@ -118,6 +131,11 @@ body {
 }
 
 .select2-container--default.select2-container--focus .select2-selection--single {
+    border-color: #c83d3b;
+    box-shadow: 0 0 0 3px rgba(200, 61, 59, 0.16);
+}
+
+.form-field.is-invalid .select2-container--default .select2-selection--single {
     border-color: #c83d3b;
     box-shadow: 0 0 0 3px rgba(200, 61, 59, 0.16);
 }
@@ -158,6 +176,11 @@ body {
 
 .submit-button:active {
     transform: translateY(1px);
+}
+
+.submit-button:disabled {
+    cursor: wait;
+    opacity: 0.72;
 }
 
 @media (max-width: 760px) {

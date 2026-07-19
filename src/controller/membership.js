@@ -86,6 +86,25 @@ async function findRegistrationLinkByCode(code) {
   return rows[0] ?? null;
 }
 
+async function findUsedCustomerContacts(phone, email) {
+  const [customers] = await pool.query(
+    `
+      SELECT telfon, email
+      FROM customers
+      WHERE telfon = ?
+        OR LOWER(email) = LOWER(?)
+    `,
+    [phone, email],
+  );
+
+  return {
+    phone: customers.some((customer) => customer.telfon === phone),
+    email: customers.some(
+      (customer) => customer.email?.toLowerCase() === email.toLowerCase(),
+    ),
+  };
+}
+
 function sendRegistrationLinkNotFound(res) {
   return res.status(404).send('Link registrasi membership tidak ditemukan.');
 }
@@ -131,6 +150,28 @@ const store = asyncHandler(async (req, res) => {
     community_id: communityId,
     referral,
   } = validation.data;
+
+  const usedContacts = await findUsedCustomerContacts(phone, email);
+
+  if (usedContacts.phone || usedContacts.email) {
+    const errors = {};
+
+    if (usedContacts.phone) {
+      errors.phone = ['Nomor telepon sudah terdaftar.'];
+    }
+
+    if (usedContacts.email) {
+      errors.email = ['Email sudah terdaftar.'];
+    }
+
+    return res.status(400).json({
+      message:
+        usedContacts.phone && usedContacts.email
+          ? 'Nomor telepon dan email sudah terdaftar.'
+          : Object.values(errors)[0][0],
+      errors,
+    });
+  }
 
   return res.status(201).json({
     message: 'Registrasi membership berhasil.',

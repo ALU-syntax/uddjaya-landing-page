@@ -16,6 +16,7 @@
     <link rel="icon" href="/img/logo.ico" type="image/x-icon">
     <link rel="stylesheet" href="/css/vendor/normalize.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/css/select2.min.css">
+    <link rel="stylesheet" href="/vendor/izitoast/css/iziToast.min.css">
     <link rel="stylesheet" href="/css/register.css">
 
     <title><%= title %> | UD DJAYA</title>
@@ -42,10 +43,10 @@
                         id="phone"
                         class="js-digits-only"
                         name="phone"
-                        type="number"
+                        type="text"
                         inputmode="numeric"
-                        min="0"
-                        max="9999999999999"
+                        maxlength="13"
+                        pattern="08[0-9]{0,11}"
                         data-maxlength="13"
                         autocomplete="tel"
                         required
@@ -102,6 +103,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/js/select2.min.js" defer></script>
+    <script src="/vendor/izitoast/js/iziToast.min.js" defer></script>
     <script src="/js/register.js" defer></script>
 </body>
 
