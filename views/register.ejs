@@ -84,16 +84,19 @@
 
                 <div class="form-field">
                     <label for="referral">Referral</label>
-                    <input
-                        id="referral"
-                        class="js-digits-only"
-                        name="referral"
-                        type="text"
-                        inputmode="numeric"
-                        maxlength="13"
-                        pattern="[0-9]{0,13}"
-                        autocomplete="off"
-                    >
+                    <div class="input-action-row">
+                        <input
+                            id="referral"
+                            class="js-digits-only"
+                            name="referral"
+                            type="text"
+                            inputmode="numeric"
+                            maxlength="13"
+                            pattern="08[0-9]{0,11}"
+                            autocomplete="off"
+                        >
+                        <button class="check-button js-referral-check" type="button">Cek</button>
+                    </div>
                 </div>
 
                 <button class="submit-button" type="submit">Daftar Membership</button>

@@ -94,6 +94,38 @@ body {
     transition: border-color 160ms ease, box-shadow 160ms ease;
 }
 
+.input-action-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+}
+
+.check-button {
+    min-height: 46px;
+    border: 0;
+    border-radius: 6px;
+    padding: 0 16px;
+    font: inherit;
+    font-weight: 700;
+    color: #fffaf5;
+    background: #5b2d2b;
+    cursor: pointer;
+    transition: background 160ms ease, transform 160ms ease, opacity 160ms ease;
+}
+
+.check-button:hover {
+    background: #3f201f;
+}
+
+.check-button:active {
+    transform: translateY(1px);
+}
+
+.check-button:disabled {
+    cursor: wait;
+    opacity: 0.72;
+}
+
 .form-field input:focus,
 .form-field select:focus {
     border-color: #c83d3b;
@@ -106,6 +138,11 @@ body {
     box-shadow: 0 0 0 3px rgba(200, 61, 59, 0.16);
 }
 
+.form-field.is-valid input {
+    border-color: #25845b;
+    box-shadow: 0 0 0 3px rgba(37, 132, 91, 0.16);
+}
+
 .form-field input:invalid:not(:placeholder-shown),
 .form-field select:invalid:not(:focus) {
     border-color: #c83d3b;
@@ -116,6 +153,13 @@ body {
     font-size: 13px;
     line-height: 1.35;
     color: #b83332;
+}
+
+.field-success {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.35;
+    color: #1f7a53;
 }
 
 .select2-container {

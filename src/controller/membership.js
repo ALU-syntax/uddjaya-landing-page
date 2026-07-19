@@ -60,8 +60,17 @@ const registrationSchema = z.object({
   community_id: optionalString(),
   referral: optionalString((schema) =>
     schema.regex(
-      /^\d{0,13}$/,
-      'Referral hanya boleh angka dan maksimal 13 digit.',
+      /^(?:08\d{0,11})?$/,
+      'Referral harus diawali 08, hanya boleh angka, dan maksimal 13 digit.',
+    ),
+  ),
+});
+
+const referralCheckSchema = z.object({
+  phone: requiredString('Nomor referral', (schema) =>
+    schema.regex(
+      /^08\d{0,11}$/,
+      'Nomor referral harus diawali 08, hanya boleh angka, dan maksimal 13 digit.',
     ),
   ),
 });
@@ -84,6 +93,20 @@ async function findRegistrationLinkByCode(code) {
   );
 
   return rows[0] ?? null;
+}
+
+async function findCustomerByPhone(phone) {
+  const [customers] = await pool.query(
+    `
+      SELECT id
+      FROM customers
+      WHERE telfon = ?
+      LIMIT 1
+    `,
+    [phone],
+  );
+
+  return customers[0] ?? null;
 }
 
 async function findUsedCustomerContacts(phone, email) {
@@ -153,6 +176,43 @@ const communities = asyncHandler(async (req, res) => {
   });
 });
 
+const referral = asyncHandler(async (req, res) => {
+  const registrationLink = await findRegistrationLinkByCode(req.params.code);
+
+  if (!registrationLink) {
+    return res.status(404).json({
+      message: 'Link registrasi membership tidak ditemukan.',
+    });
+  }
+
+  const validation = referralCheckSchema.safeParse(req.query);
+
+  if (!validation.success) {
+    return res.status(400).json({
+      message:
+        validation.error.issues[0]?.message ??
+        'Nomor referral tidak valid.',
+      errors: {
+        referral: validation.error.issues.map((issue) => issue.message),
+      },
+    });
+  }
+
+  const customer = await findCustomerByPhone(validation.data.phone);
+
+  if (!customer) {
+    return res.status(404).json({
+      valid: false,
+      message: 'Nomor referral tidak terdaftar sebagai customer.',
+    });
+  }
+
+  return res.json({
+    valid: true,
+    message: 'Nomor referral terdaftar sebagai customer.',
+  });
+});
+
 const store = asyncHandler(async (req, res) => {
   const registrationLink = await findRegistrationLinkByCode(req.params.code);
 
@@ -203,6 +263,15 @@ const store = asyncHandler(async (req, res) => {
     });
   }
 
+  if (referral && !(await findCustomerByPhone(referral))) {
+    return res.status(400).json({
+      message: 'Nomor referral tidak terdaftar sebagai customer.',
+      errors: {
+        referral: ['Nomor referral tidak terdaftar sebagai customer.'],
+      },
+    });
+  }
+
   return res.status(201).json({
     message: 'Registrasi membership berhasil.',
     data: {
@@ -220,6 +289,7 @@ const store = asyncHandler(async (req, res) => {
 
 export default {
   communities,
+  referral,
   register,
   store,
 };

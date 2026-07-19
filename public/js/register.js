@@ -46,7 +46,9 @@ function clearFieldError(control) {
     }
 
     formField.classList.remove('is-invalid');
+    formField.classList.remove('is-valid');
     formField.querySelector('.field-error')?.remove();
+    formField.querySelector('.field-success')?.remove();
     control.removeAttribute('aria-invalid');
     control.removeAttribute('aria-describedby');
 }
@@ -77,6 +79,28 @@ function setFieldError(control, message) {
     control.setAttribute('aria-invalid', 'true');
     control.setAttribute('aria-describedby', errorId);
     formField.append(errorMessage);
+}
+
+function setFieldSuccess(control, message) {
+    const formField = control.closest('.form-field');
+
+    if (!formField) {
+        return;
+    }
+
+    const successMessage = document.createElement('p');
+
+    formField.classList.remove('is-invalid');
+    formField.classList.add('is-valid');
+    formField.querySelector('.field-error')?.remove();
+    formField.querySelector('.field-success')?.remove();
+
+    successMessage.className = 'field-success';
+    successMessage.textContent = message;
+
+    control.removeAttribute('aria-invalid');
+    control.removeAttribute('aria-describedby');
+    formField.append(successMessage);
 }
 
 function applyFieldErrors(form, errors = {}) {
@@ -173,10 +197,73 @@ async function loadCommunities(form) {
     }
 }
 
+function setReferralChecking(button, isChecking) {
+    if (!button) {
+        return;
+    }
+
+    if (!button.dataset.defaultText) {
+        button.dataset.defaultText = button.textContent;
+    }
+
+    button.disabled = isChecking;
+    button.textContent = isChecking ? 'Cek...' : button.dataset.defaultText;
+}
+
+async function checkReferral(form) {
+    const referralInput = form.elements.namedItem('referral');
+    const checkButton = form.querySelector('.js-referral-check');
+    const referral = referralInput?.value.trim() ?? '';
+
+    if (!referralInput) {
+        return;
+    }
+
+    clearFieldError(referralInput);
+
+    if (!referral) {
+        setFieldError(referralInput, 'Isi nomor referral terlebih dahulu.');
+        referralInput.focus();
+        return;
+    }
+
+    setReferralChecking(checkButton, true);
+
+    try {
+        const url = new URL(`${form.action.replace(/\/$/, '')}/referral`);
+        url.searchParams.set('phone', referral);
+
+        const response = await fetch(url, {
+            headers: {
+                Accept: 'application/json',
+            },
+        });
+        const payload = await parseResponse(response);
+        const message = payload.message ?? 'Nomor referral tidak valid.';
+
+        if (!response.ok || !payload.valid) {
+            setFieldError(referralInput, message);
+            showToast('error', message);
+            return;
+        }
+
+        setFieldSuccess(referralInput, message);
+        showToast('success', message);
+    } catch (error) {
+        showToast('error', 'Koneksi bermasalah. Silakan coba lagi.');
+    } finally {
+        setReferralChecking(checkButton, false);
+    }
+}
+
 document.querySelectorAll('.register-form').forEach((form) => {
     form.querySelectorAll('input, select, textarea').forEach((control) => {
         control.addEventListener('input', () => clearFieldError(control));
         control.addEventListener('change', () => clearFieldError(control));
+    });
+
+    form.querySelector('.js-referral-check')?.addEventListener('click', () => {
+        checkReferral(form);
     });
 
     form.addEventListener('submit', async (event) => {
