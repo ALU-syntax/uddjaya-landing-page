@@ -366,6 +366,26 @@ const store = asyncHandler(async (req, res) => {
     });
   }
 
+  await sendMail({
+    to: email,
+    subject: 'Registrasi Membership',
+    template: 'registrasi-membership.ejs',
+    data: {
+      name,
+      email,
+      level_member: lowestLevelMembership.name,
+      expired,
+      logoUrl: 'cid:uddjaya-logo',
+    },
+    attachments: [
+      {
+        filename: 'logo.png',
+        path: publicAssetPath('img', 'logo.png'),
+        cid: 'uddjaya-logo',
+      },
+    ],
+  });
+
   return res.status(201).json({
     message: 'Registrasi membership berhasil.',
     data: {
