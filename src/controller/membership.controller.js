@@ -3,6 +3,8 @@ import { z } from 'zod';
 
 import {
   createCustomer,
+  createCustomerPointExpLog,
+  createCustomerReferral,
   findActivePettyCashByOutletId,
   findActiveCommunityByIdAndOutletId,
   findCommunitiesByOutletId,
@@ -10,10 +12,14 @@ import {
   findLowestActiveLevelMembership,
   findRegistrationLinkByCode,
   findUsedCustomerContacts,
+  incrementCustomerPoint,
+  runInTransaction,
 } from '../model/membership.js';
 import { publicAssetPath, sendMail } from '../service/mail.service.js';
 
 const genderOptions = ['laki-laki', 'perempuan'];
+const referralPoint = 75;
+const referralPointLog = 'mendapatkan poin dari referee sebesar 75 poin';
 
 const requiredString = (fieldName, validate = (schema) => schema) =>
   z.preprocess(
@@ -285,18 +291,53 @@ const store = asyncHandler(async (req, res) => {
     });
   }
 
-  const customer = await createCustomer({
-    name,
-    phone,
-    age: calculateAge(birthDate),
-    email,
-    birthDate,
-    domisili,
-    gender,
-    communityId: communityId || null,
-    referralId: referralCustomer?.id ?? null,
-    levelMembershipId: lowestLevelMembership.id,
-    userId: activePettyCash.user_id_started,
+  const userId = activePettyCash.user_id_started;
+  const customer = await runInTransaction(async (connection) => {
+    const createdCustomer = await createCustomer(
+      {
+        name,
+        phone,
+        age: calculateAge(birthDate),
+        email,
+        birthDate,
+        domisili,
+        gender,
+        communityId: communityId || null,
+        referralId: referralCustomer?.id ?? null,
+        levelMembershipId: lowestLevelMembership.id,
+        userId,
+      },
+      connection,
+    );
+
+    if (referralCustomer) {
+      await createCustomerReferral(
+        {
+          customerId: createdCustomer.id,
+          referralId: referralCustomer.id,
+          userId,
+        },
+        connection,
+      );
+
+      await incrementCustomerPoint(
+        referralCustomer.id,
+        referralPoint,
+        connection,
+      );
+
+      await createCustomerPointExpLog(
+        {
+          customerId: referralCustomer.id,
+          point: referralPoint,
+          refereeId: createdCustomer.id,
+          log: referralPointLog,
+        },
+        connection,
+      );
+    }
+
+    return createdCustomer;
   });
 
   const expired = getMembershipExpiredDate();

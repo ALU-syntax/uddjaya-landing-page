@@ -1,5 +1,24 @@
 import pool from '../config/mysql.js';
 
+export async function runInTransaction(callback) {
+  const connection = await pool.getConnection();
+
+  try {
+    await connection.beginTransaction();
+
+    const result = await callback(connection);
+
+    await connection.commit();
+
+    return result;
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+}
+
 export async function findRegistrationLinkByCode(code) {
   const [rows] = await pool.query(
     `
@@ -117,8 +136,8 @@ export async function findActiveCommunityByIdAndOutletId(id, outletId) {
   return communities[0] ?? null;
 }
 
-export async function createCustomer(customer) {
-  const [result] = await pool.query(
+export async function createCustomer(customer, connection = pool) {
+  const [result] = await connection.query(
     `
       INSERT INTO customers (
         name,
@@ -173,6 +192,69 @@ export async function createCustomer(customer) {
       customer.referralId,
       customer.levelMembershipId,
       customer.userId,
+    ],
+  );
+
+  return {
+    id: result.insertId,
+  };
+}
+
+export async function createCustomerReferral(customerReferral, connection = pool) {
+  const [result] = await connection.query(
+    `
+      INSERT INTO customer_referrals (
+        customer_id,
+        referral_id,
+        user_id,
+        created_at,
+        updated_at
+      )
+      VALUES (?, ?, ?, NOW(), NOW())
+    `,
+    [
+      customerReferral.customerId,
+      customerReferral.referralId,
+      customerReferral.userId,
+    ],
+  );
+
+  return {
+    id: result.insertId,
+  };
+}
+
+export async function incrementCustomerPoint(customerId, point, connection = pool) {
+  await connection.query(
+    `
+      UPDATE customers
+      SET
+        point = COALESCE(point, 0) + ?,
+        updated_at = NOW()
+      WHERE id = ?
+    `,
+    [point, customerId],
+  );
+}
+
+export async function createCustomerPointExpLog(pointExpLog, connection = pool) {
+  const [result] = await connection.query(
+    `
+      INSERT INTO customer_poin_exps (
+        customer_id,
+        point,
+        referee_id,
+        log,
+        created_at,
+        updated_at
+      )
+      VALUES (?, ?, ?, ?, NOW(), NOW())
+    `,
+    [
+      pointExpLog.customerId,
+      pointExpLog.point,
+      pointExpLog.refereeId,
+      pointExpLog.log,
     ],
   );
 
