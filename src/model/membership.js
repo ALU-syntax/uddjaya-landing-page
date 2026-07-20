@@ -99,3 +99,67 @@ export async function findCommunitiesByOutletId(outletId) {
 
   return communities;
 }
+
+export async function createCustomer(customer) {
+  const [result] = await pool.query(
+    `
+      INSERT INTO customers (
+        name,
+        telfon,
+        umur,
+        email,
+        tanggal_lahir,
+        domisili,
+        gender,
+        community_id,
+        deleted_at,
+        created_at,
+        updated_at,
+        exp,
+        point,
+        referral_id,
+        level_memberships_id,
+        user_id,
+        level_batch,
+        birthday_email_sent_at
+      )
+      VALUES (
+        ?,
+        ?,
+        ?,
+        ?,
+        ?,
+        ?,
+        ?,
+        ?,
+        NULL,
+        NOW(),
+        NOW(),
+        0,
+        0,
+        ?,
+        ?,
+        ?,
+        1,
+        NULL
+      )
+    `,
+    [
+      customer.name,
+      customer.phone,
+      customer.age,
+      customer.email,
+      customer.birthDate,
+      customer.domisili,
+      customer.gender,
+      customer.communityId,
+      customer.referralId,
+      customer.levelMembershipId,
+      customer.userId,
+    ],
+  );
+
+  return {
+    id: result.insertId,
+  };
+}

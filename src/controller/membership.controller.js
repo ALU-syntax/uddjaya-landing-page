@@ -2,6 +2,7 @@ import asyncHandler from 'express-async-handler';
 import { z } from 'zod';
 
 import {
+  createCustomer,
   findActivePettyCashByOutletId,
   findCommunitiesByOutletId,
   findCustomerByPhone,
@@ -52,6 +53,7 @@ const registrationSchema = z.object({
   email: requiredString('Email', (schema) =>
     schema.email('Format email tidak valid.'),
   ),
+  domisili: requiredString('Domisili'),
   birth_date: requiredString('Tanggal lahir', (schema) =>
     schema.refine(
       isValidDateInput,
@@ -81,6 +83,25 @@ const referralCheckSchema = z.object({
     ),
   ),
 });
+
+function calculateAge(birthDateInput) {
+  const [birthYear, birthMonth, birthDay] = birthDateInput
+    .split('-')
+    .map(Number);
+  const today = new Date();
+  let age = today.getFullYear() - birthYear;
+  const currentMonth = today.getMonth() + 1;
+  const currentDay = today.getDate();
+
+  if (
+    currentMonth < birthMonth ||
+    (currentMonth === birthMonth && currentDay < birthDay)
+  ) {
+    age -= 1;
+  }
+
+  return age;
+}
 
 function sendRegistrationLinkNotFound(res) {
   return res.status(404).send('Link registrasi membership tidak ditemukan.');
@@ -173,6 +194,7 @@ const store = asyncHandler(async (req, res) => {
     name,
     phone,
     email,
+    domisili,
     birth_date: birthDate,
     gender,
     community_id: communityId,
@@ -219,7 +241,9 @@ const store = asyncHandler(async (req, res) => {
     });
   }
 
-  if (referral && !(await findCustomerByPhone(referral))) {
+  const referralCustomer = referral ? await findCustomerByPhone(referral) : null;
+
+  if (referral && !referralCustomer) {
     return res.status(400).json({
       message: 'Nomor referral tidak terdaftar sebagai customer.',
       errors: {
@@ -228,17 +252,34 @@ const store = asyncHandler(async (req, res) => {
     });
   }
 
+  const customer = await createCustomer({
+    name,
+    phone,
+    age: calculateAge(birthDate),
+    email,
+    birthDate,
+    domisili,
+    gender,
+    communityId: communityId || null,
+    referralId: referralCustomer?.id ?? null,
+    levelMembershipId: lowestLevelMembership.id,
+    userId: activePettyCash.user_id_started,
+  });
+
   return res.status(201).json({
     message: 'Registrasi membership berhasil.',
     data: {
+      id: customer.id,
       name,
       phone,
       email,
+      domisili,
       birthDate,
       gender,
       communityId: communityId || null,
+      levelMembershipId: lowestLevelMembership.id,
       outletName: registrationLink.outlet_name,
-      referral: referral || null,
+      referralId: referralCustomer?.id ?? null,
     },
   });
 });

@@ -34,7 +34,7 @@
             <form class="register-form" action="/membership/register/<%= registrationLink.code %>" method="post">
                 <div class="form-field">
                     <label for="name">Nama <span class="required-mark">*</span></label>
-                    <input id="name" name="name" type="text" autocomplete="name" placeholder="contoh: Djayadi" required>
+                    <input id="name" name="name" type="text" autocomplete="name" placeholder="Djayadi" required>
                 </div>
 
                 <div class="form-field">
@@ -49,18 +49,33 @@
                         pattern="08[0-9]{0,11}"
                         data-maxlength="13"
                         autocomplete="tel"
+                        placeholder="081234567890"
                         required
                     >
                 </div>
 
                 <div class="form-field">
                     <label for="email">Email <span class="required-mark">*</span></label>
-                    <input id="email" name="email" type="email" autocomplete="email" required>
+                    <input id="email" name="email" type="email" autocomplete="email" placeholder="nama@email.com" required>
+                </div>
+
+                <div class="form-field">
+                    <label for="domisili">Domisili <span class="required-mark">*</span></label>
+                    <input
+                        id="domisili"
+                        name="domisili"
+                        type="text"
+                        autocomplete="address-level2"
+                        placeholder="Bogor"
+                        pattern=".*\S.*"
+                        title="Domisili wajib diisi."
+                        required
+                    >
                 </div>
 
                 <div class="form-field">
                     <label for="birth_date">Tanggal Lahir <span class="required-mark">*</span></label>
-                    <input id="birth_date" name="birth_date" type="date" required>
+                    <input id="birth_date" name="birth_date" type="date" placeholder="YYYY-MM-DD" required>
                 </div>
 
                 <div class="form-field">
@@ -83,7 +98,7 @@
                 </div>
 
                 <div class="form-field">
-                    <label for="referral">Referral</label>
+                    <label for="referral">Nomor Telepon Referral</label>
                     <div class="input-action-row">
                         <input
                             id="referral"
@@ -94,6 +109,7 @@
                             maxlength="13"
                             pattern="08[0-9]{0,11}"
                             autocomplete="off"
+                            placeholder="081234567890"
                         >
                         <button class="check-button js-referral-check" type="button">Cek</button>
                     </div>
