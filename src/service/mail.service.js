@@ -36,12 +36,14 @@ function createTransporter() {
   const username = normalizeEnv(process.env.MAIL_USERNAME);
   const password = normalizeEnv(process.env.MAIL_PASSWORD);
   const encryption = normalizeEnv(process.env.MAIL_ENCRYPTION)?.toLowerCase();
-  const secure = encryption === 'ssl' || encryption === 'tls' || port === 465;
+  const secure = encryption === 'ssl' || port === 465;
+  const requireTLS = encryption === 'tls';
 
   return nodemailer.createTransport({
     host,
     port,
     secure,
+    requireTLS,
     auth:
       username && password
         ? {

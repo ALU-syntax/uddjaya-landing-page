@@ -21,6 +21,28 @@ import { publicAssetPath, sendMail } from '../service/mail.service.js';
 const genderOptions = ['laki-laki', 'perempuan'];
 const referralPoint = 75;
 const referralPointLog = 'mendapatkan poin dari referee sebesar 75 poin';
+const turnstileSiteverifyUrl =
+  'https://challenges.cloudflare.com/turnstile/v0/siteverify';
+const turnstileAction = 'membership-register';
+
+const normalizeEnv = (value) => {
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  const trimmed = value.trim();
+
+  return trimmed && trimmed.toLowerCase() !== 'null' ? trimmed : null;
+};
+
+const getTurnstileSiteKey = () => normalizeEnv(process.env.TURNSTILE_SITE_KEY);
+
+const getTurnstileSecretKey = () =>
+  normalizeEnv(process.env.TURNSTILE_SECRET_KEY);
+
+const isTurnstileRequired = () =>
+  process.env.NODE_ENV === 'production' ||
+  Boolean(getTurnstileSiteKey() || getTurnstileSecretKey());
 
 const requiredString = (fieldName, validate = (schema) => schema) =>
   z.preprocess(
@@ -131,6 +153,94 @@ function sendRegistrationLinkNotFound(res) {
   return res.status(404).send('Link registrasi membership tidak ditemukan.');
 }
 
+function getHeaderFirstValue(value) {
+  if (Array.isArray(value)) {
+    return value[0] ?? null;
+  }
+
+  return typeof value === 'string' ? value : null;
+}
+
+function getClientIp(req) {
+  const cloudflareIp = getHeaderFirstValue(req.headers['cf-connecting-ip']);
+  const forwardedFor = getHeaderFirstValue(req.headers['x-forwarded-for']);
+
+  return (
+    cloudflareIp ||
+    forwardedFor?.split(',')[0]?.trim() ||
+    req.ip ||
+    req.socket?.remoteAddress ||
+    null
+  );
+}
+
+async function validateTurnstile(req) {
+  if (!isTurnstileRequired()) {
+    return { success: true };
+  }
+
+  if (!getTurnstileSiteKey() || !getTurnstileSecretKey()) {
+    return {
+      success: false,
+      message: 'Konfigurasi verifikasi keamanan belum lengkap.',
+    };
+  }
+
+  const token = req.body?.['cf-turnstile-response'];
+
+  if (typeof token !== 'string' || !token.trim()) {
+    return {
+      success: false,
+      message: 'Verifikasi keamanan wajib diselesaikan.',
+    };
+  }
+
+  const body = new URLSearchParams({
+    secret: getTurnstileSecretKey(),
+    response: token,
+  });
+  const remoteIp = getClientIp(req);
+
+  if (remoteIp) {
+    body.set('remoteip', remoteIp);
+  }
+
+  try {
+    const response = await fetch(turnstileSiteverifyUrl, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+      },
+      body,
+      signal: AbortSignal.timeout(5000),
+    });
+    const result = await response.json();
+
+    if (
+      response.ok &&
+      result.success === true &&
+      result.action === turnstileAction
+    ) {
+      return { success: true };
+    }
+
+    console.warn('Turnstile validation failed:', result['error-codes']);
+
+    return {
+      success: false,
+      message: 'Verifikasi keamanan gagal. Silakan coba lagi.',
+    };
+  } catch (error) {
+    console.error('Turnstile validation error:', error);
+
+    return {
+      success: false,
+      message: 'Verifikasi keamanan belum bisa diproses. Silakan coba lagi.',
+    };
+  }
+}
+
 const register = asyncHandler(async (req, res) => {
   const registrationLink = await findRegistrationLinkByCode(req.params.code);
 
@@ -142,6 +252,7 @@ const register = asyncHandler(async (req, res) => {
     title: `Registrasi Membership ${registrationLink.name}`,
     communities: [],
     registrationLink,
+    turnstileSiteKey: getTurnstileSiteKey(),
   });
 });
 
@@ -201,6 +312,17 @@ const store = asyncHandler(async (req, res) => {
 
   if (!registrationLink) {
     return sendRegistrationLinkNotFound(res);
+  }
+
+  const turnstileValidation = await validateTurnstile(req);
+
+  if (!turnstileValidation.success) {
+    return res.status(400).json({
+      message: turnstileValidation.message,
+      errors: {
+        turnstile: [turnstileValidation.message],
+      },
+    });
   }
 
   const validation = registrationSchema.safeParse(req.body);

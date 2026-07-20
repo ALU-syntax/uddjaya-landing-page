@@ -33,6 +33,7 @@ app.use(
           "'self'",
           'https://cdn.jsdelivr.net',
           'https://cdnjs.cloudflare.com',
+          'https://challenges.cloudflare.com',
           'https://esm.sh',
         ],
         scriptSrcAttr: ["'none'"],
@@ -54,8 +55,13 @@ app.use(
         ],
         connectSrc: [
           "'self'",
+          'https://challenges.cloudflare.com',
           'https://esm.sh',
           'https://res.cloudinary.com',
+        ],
+        frameSrc: [
+          "'self'",
+          'https://challenges.cloudflare.com',
         ],
         baseUri: ["'self'"],
         formAction: ["'self'"],

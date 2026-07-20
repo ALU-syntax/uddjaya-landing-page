@@ -115,6 +115,12 @@
                     </div>
                 </div>
 
+                <% if (turnstileSiteKey) { %>
+                    <div class="form-field turnstile-field">
+                        <div class="cf-turnstile" data-sitekey="<%= turnstileSiteKey %>" data-action="membership-register" data-theme="light"></div>
+                    </div>
+                <% } %>
+
                 <button class="submit-button" type="submit">Daftar Membership</button>
             </form>
         </section>
@@ -122,6 +128,9 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/js/select2.min.js" defer></script>
+    <% if (turnstileSiteKey) { %>
+        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    <% } %>
     <script src="/vendor/izitoast/js/iziToast.min.js" defer></script>
     <script src="/js/register.js" defer></script>
 </body>

@@ -156,6 +156,12 @@ function setSubmitting(form, isSubmitting) {
         : submitButton.dataset.defaultText;
 }
 
+function resetTurnstile() {
+    if (window.turnstile?.reset) {
+        window.turnstile.reset();
+    }
+}
+
 function resetCommunityOptions(select) {
     select.replaceChildren(new Option('Pilih community', '', true, true));
     select.options[0].disabled = true;
@@ -291,17 +297,20 @@ document.querySelectorAll('.register-form').forEach((form) => {
             if (!response.ok) {
                 applyFieldErrors(form, payload.errors);
                 showToast('error', message);
+                resetTurnstile();
                 return;
             }
 
             showToast('success', message);
             form.reset();
+            resetTurnstile();
 
             if (window.jQuery?.fn?.select2) {
                 window.jQuery('.js-community-select').val('').trigger('change');
             }
         } catch (error) {
             showToast('error', 'Koneksi bermasalah. Silakan coba lagi.');
+            resetTurnstile();
         } finally {
             setSubmitting(form, false);
         }
