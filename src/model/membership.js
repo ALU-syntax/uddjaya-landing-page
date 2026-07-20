@@ -224,6 +224,30 @@ export async function createCustomerReferral(customerReferral, connection = pool
   };
 }
 
+export async function createHistoryExpMembershipLevel(history, connection = pool) {
+  const [result] = await connection.query(
+    `
+      INSERT INTO history_exp_membership_levels (
+        customer_id,
+        level_memberships_id,
+        exp,
+        created_at,
+        updated_at
+      )
+      VALUES (?, ?, ?, NOW(), NOW())
+    `,
+    [
+      history.customerId,
+      history.levelMembershipId,
+      history.exp,
+    ],
+  );
+
+  return {
+    id: result.insertId,
+  };
+}
+
 export async function incrementCustomerPoint(customerId, point, connection = pool) {
   await connection.query(
     `

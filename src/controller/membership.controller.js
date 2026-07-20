@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 import {
   createCustomer,
+  createHistoryExpMembershipLevel,
   createCustomerPointExpLog,
   createCustomerReferral,
   findActivePettyCashByOutletId,
@@ -306,6 +307,15 @@ const store = asyncHandler(async (req, res) => {
         referralId: referralCustomer?.id ?? null,
         levelMembershipId: lowestLevelMembership.id,
         userId,
+      },
+      connection,
+    );
+
+    await createHistoryExpMembershipLevel(
+      {
+        customerId: createdCustomer.id,
+        levelMembershipId: lowestLevelMembership.id,
+        exp: lowestLevelMembership.benchmark,
       },
       connection,
     );
