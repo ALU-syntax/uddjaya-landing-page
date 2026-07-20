@@ -18,7 +18,7 @@ const projectRoot = path.resolve(__dirname, '..');
 app.disable('x-powered-by');
 
 if (process.env.NODE_ENV === 'production') {
-  app.set('trust proxy', 1);
+  app.set('trust proxy', 'loopback');
 }
 
 app.set('view engine', 'ejs');
@@ -98,6 +98,10 @@ app.use(
   })
 );
 
+app.get('/healthz', (req, res) => {
+  return res.status(200).send('ok');
+});
+
 app.use('/', indexRouter);
 app.use('/membership', membershipRouter);
 
@@ -119,14 +123,15 @@ app.use((error, req, res, next) => {
   );
 });
 
+const host = process.env.HOST ?? '127.0.0.1';
 const port = Number(process.env.PORT ?? 3000);
 
 async function startServer() {
   try {
     await pool.query('SELECT 1');
 
-    app.listen(port, () => {
-      console.log(`Server berjalan di http://localhost:${port}`);
+    app.listen(port, host, () => {
+      console.log(`Server berjalan di http://${host}:${port}`);
     });
   } catch (error) {
     console.error('Gagal terhubung ke database:', error);

@@ -40,6 +40,15 @@ const getTurnstileSiteKey = () => normalizeEnv(process.env.TURNSTILE_SITE_KEY);
 const getTurnstileSecretKey = () =>
   normalizeEnv(process.env.TURNSTILE_SECRET_KEY);
 
+const getTurnstileExpectedHostname = () =>
+  normalizeEnv(process.env.TURNSTILE_EXPECTED_HOSTNAME);
+
+const getTurnstileExpectedHostnames = () =>
+  getTurnstileExpectedHostname()
+    ?.split(',')
+    .map((hostname) => hostname.trim())
+    .filter(Boolean) ?? [];
+
 const isTurnstileRequired = () =>
   process.env.NODE_ENV === 'production' ||
   Boolean(getTurnstileSiteKey() || getTurnstileSecretKey());
@@ -216,11 +225,16 @@ async function validateTurnstile(req) {
       signal: AbortSignal.timeout(5000),
     });
     const result = await response.json();
+    const expectedHostnames = getTurnstileExpectedHostnames();
+    const hostnameMatches =
+      expectedHostnames.length === 0 ||
+      expectedHostnames.includes(result.hostname);
 
     if (
       response.ok &&
       result.success === true &&
-      result.action === turnstileAction
+      result.action === turnstileAction &&
+      hostnameMatches
     ) {
       return { success: true };
     }
