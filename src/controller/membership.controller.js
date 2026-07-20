@@ -4,12 +4,14 @@ import { z } from 'zod';
 import {
   createCustomer,
   findActivePettyCashByOutletId,
+  findActiveCommunityByIdAndOutletId,
   findCommunitiesByOutletId,
   findCustomerByPhone,
   findLowestActiveLevelMembership,
   findRegistrationLinkByCode,
   findUsedCustomerContacts,
 } from '../model/membership.js';
+import { publicAssetPath, sendMail } from '../service/mail.service.js';
 
 const genderOptions = ['laki-laki', 'perempuan'];
 
@@ -101,6 +103,21 @@ function calculateAge(birthDateInput) {
   }
 
   return age;
+}
+
+function formatDateId(date) {
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+
+  return `${day}-${month}-${year}`;
+}
+
+function getMembershipExpiredDate() {
+  const expiredDate = new Date();
+  expiredDate.setFullYear(expiredDate.getFullYear() + 1);
+
+  return formatDateId(expiredDate);
 }
 
 function sendRegistrationLinkNotFound(res) {
@@ -252,6 +269,22 @@ const store = asyncHandler(async (req, res) => {
     });
   }
 
+  const community = communityId
+    ? await findActiveCommunityByIdAndOutletId(
+        communityId,
+        registrationLink.outlet_id,
+      )
+    : null;
+
+  if (communityId && !community) {
+    return res.status(400).json({
+      message: 'Community tidak valid atau tidak aktif.',
+      errors: {
+        community_id: ['Community tidak valid atau tidak aktif.'],
+      },
+    });
+  }
+
   const customer = await createCustomer({
     name,
     phone,
@@ -266,6 +299,32 @@ const store = asyncHandler(async (req, res) => {
     userId: activePettyCash.user_id_started,
   });
 
+  const expired = getMembershipExpiredDate();
+
+  if (community) {
+    await sendMail({
+      to: email,
+      subject: 'Registrasi Membership Komunitas',
+      template: 'registrasi-membership-komunitas.ejs',
+      data: {
+        name,
+        namaKomunitas: community.name,
+        poin: 0,
+        exp: 0,
+        expCommunity: community.exp,
+        expired,
+        logoUrl: 'cid:uddjaya-logo',
+      },
+      attachments: [
+        {
+          filename: 'logo.png',
+          path: publicAssetPath('img', 'logo.png'),
+          cid: 'uddjaya-logo',
+        },
+      ],
+    });
+  }
+
   return res.status(201).json({
     message: 'Registrasi membership berhasil.',
     data: {
@@ -277,6 +336,7 @@ const store = asyncHandler(async (req, res) => {
       birthDate,
       gender,
       communityId: communityId || null,
+      communityName: community?.name ?? null,
       levelMembershipId: lowestLevelMembership.id,
       outletName: registrationLink.outlet_name,
       referralId: referralCustomer?.id ?? null,

@@ -100,6 +100,23 @@ export async function findCommunitiesByOutletId(outletId) {
   return communities;
 }
 
+export async function findActiveCommunityByIdAndOutletId(id, outletId) {
+  const [communities] = await pool.query(
+    `
+      SELECT id, name, exp
+      FROM communities
+      WHERE id = ?
+        AND outlet_id = ?
+        AND status = 1
+        AND deleted_at IS NULL
+      LIMIT 1
+    `,
+    [id, outletId],
+  );
+
+  return communities[0] ?? null;
+}
+
 export async function createCustomer(customer) {
   const [result] = await pool.query(
     `
