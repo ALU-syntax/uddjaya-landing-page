@@ -163,8 +163,7 @@ export async function createCustomer(customer, connection = pool) {
         referral_id,
         level_memberships_id,
         user_id,
-        level_batch,
-        birthday_email_sent_at
+        level_batch
       )
       VALUES (
         ?,
@@ -183,8 +182,7 @@ export async function createCustomer(customer, connection = pool) {
         ?,
         ?,
         ?,
-        1,
-        NULL
+        1
       )
     `,
     [
