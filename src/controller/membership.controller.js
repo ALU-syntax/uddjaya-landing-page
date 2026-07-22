@@ -103,7 +103,9 @@ const registrationSchema = z.object({
   email: requiredString('Email', (schema) =>
     schema.email('Format email tidak valid.'),
   ),
-  domisili: requiredString('Domisili'),
+  domisili: requiredString('Domisili', (schema) =>
+    schema.max(200, 'Domisili maksimal 200 karakter.'),
+  ),
   birth_date: requiredString('Tanggal lahir', (schema) =>
     schema.refine(
       isValidDateInput,

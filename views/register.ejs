@@ -67,8 +67,9 @@
                         type="text"
                         autocomplete="address-level2"
                         placeholder="Bogor"
+                        maxlength="200"
                         pattern=".*\S.*"
-                        title="Domisili wajib diisi."
+                        title="Domisili wajib diisi dan maksimal 200 karakter."
                         required
                     >
                 </div>
@@ -100,7 +101,7 @@
                 <div class="form-field">
                     <label for="community">Community</label>
                     <select id="community" class="js-community-select" name="community_id">
-                        <option value="" selected disabled>Pilih community</option>
+                        <option value="" selected>Pilih community</option>
                         <% (communities || []).forEach((community) => { %>
                             <option value="<%= community.id %>"><%= community.name %></option>
                         <% }) %>

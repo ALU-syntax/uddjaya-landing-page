@@ -164,7 +164,6 @@ function resetTurnstile() {
 
 function resetCommunityOptions(select) {
     select.replaceChildren(new Option('Pilih community', '', true, true));
-    select.options[0].disabled = true;
 }
 
 async function loadCommunities(form) {
@@ -337,6 +336,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 
     window.jQuery('.js-community-select').select2({
+        allowClear: true,
         placeholder: 'Pilih community',
         width: '100%',
     });
