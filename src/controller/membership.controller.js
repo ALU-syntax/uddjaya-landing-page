@@ -28,6 +28,7 @@ import { publicAssetPath, sendMail } from '../service/mail.service.js';
 const genderOptions = ['laki-laki', 'perempuan'];
 const referralPoint = 75;
 const referralPointLog = 'mendapatkan poin dari referee sebesar 75 poin';
+const registrationSuccessRedirectUrl = 'https://www.instagram.com/ud.djaya/';
 const turnstileSiteverifyUrl =
   'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 const turnstileAction = 'membership-register';
@@ -687,7 +688,7 @@ const store = asyncHandler(async (req, res) => {
 
   return res.status(201).json({
     message: 'Registrasi membership berhasil.',
-    redirectTo: '/membership/register/finish',
+    redirectTo: registrationSuccessRedirectUrl,
     data: {
       id: customer.id,
       name,
