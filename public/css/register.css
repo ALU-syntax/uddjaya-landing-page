@@ -198,11 +198,15 @@ body {
 }
 
 .select2-container--default .select2-selection--single .select2-selection__clear {
-    height: 44px;
-    margin-right: 28px;
+    height: 45px;
+    margin-right: -5px;
     font-size: 22px;
     line-height: 42px;
-    color: #5b2d2b;
+    color: rgb(243, 238, 238);
+    background-color: #c83d3beb;
+    border-radius: 5px;
+    width: 80px;
+    padding-right: 5px;
 }
 
 .select2-container--default .select2-selection--single .select2-selection__clear:hover {

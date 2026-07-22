@@ -302,16 +302,7 @@ document.querySelectorAll('.register-form').forEach((form) => {
                 return;
             }
 
-            showToast('success', message);
-            form.reset();
-            resetTurnstile();
-
-            if (window.jQuery?.fn?.select2) {
-                window.jQuery('.js-outlet-select').val('').trigger('change');
-                window.jQuery('.js-community-select').val('').trigger('change');
-            }
-
-            loadCommunities(form);
+            window.location.assign(payload.redirectTo ?? '/membership/register/finish');
         } catch (error) {
             showToast('error', 'Koneksi bermasalah. Silakan coba lagi.');
             resetTurnstile();

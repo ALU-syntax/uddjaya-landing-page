@@ -59,3 +59,32 @@ body {
     font-size: 14px;
     font-weight: 400;
 }
+
+.finish-page .playground {
+    justify-content: center;
+    gap: 30px;
+    padding: 28px;
+    text-align: center;
+}
+
+.finish-page .bottom-position {
+    margin-bottom: 0;
+}
+
+.finish-message {
+    width: min(520px, 100%);
+    pointer-events: auto;
+    margin-top: 200px;
+}
+
+.finish-message h1 {
+    margin: 0;
+    font-size: clamp(26px, 5vw, 46px);
+    font-weight: 700;
+}
+
+.finish-message p {
+    margin: 14px auto 0;
+    font-size: 16px;
+    line-height: 1.55;
+}

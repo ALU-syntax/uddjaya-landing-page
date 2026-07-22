@@ -35,6 +35,12 @@ void main() {
 
 let environment = null;
 
+function getTextEffectLabel() {
+    const customText = document.querySelector('#magic')?.dataset.text;
+
+    return customText || 'COMING\n  SOON!';
+}
+
 function initParticlesBackground() {
     if (!window.particlesJS || REDUCED_MOTION) {
         return;
@@ -286,7 +292,7 @@ class CreateParticles {
         this.button = false;
 
         this.data = {
-            text: 'COMING\n  SOON!',
+            text: getTextEffectLabel(),
             amount: IS_SMALL_SCREEN ? 80 : 180,
             particleSize: 1,
             particleColor: 0xc83d3b,

@@ -93,7 +93,9 @@ function isValidDateInput(value) {
 
 const registrationSchema = z.object({
   outlet_id: requiredInteger('Outlet'),
-  name: requiredString('Nama'),
+  name: requiredString('Nama', (schema) =>
+    schema.max(244, 'Nama maksimal 244 karakter.'),
+  ),
   phone: requiredString('Nomor telepon', (schema) =>
     schema.regex(
       /^08\d{0,11}$/,
@@ -101,7 +103,9 @@ const registrationSchema = z.object({
     ),
   ),
   email: requiredString('Email', (schema) =>
-    schema.email('Format email tidak valid.'),
+    schema
+      .email('Format email tidak valid.')
+      .max(244, 'Email maksimal 244 karakter.'),
   ),
   domisili: requiredString('Domisili', (schema) =>
     schema.max(200, 'Domisili maksimal 200 karakter.'),
@@ -269,6 +273,12 @@ const register = asyncHandler(async (req, res) => {
     communities: await findCommunities(),
     outlets: await findOutlets(),
     turnstileSiteKey: getTurnstileSiteKey(),
+  });
+});
+
+const finish = asyncHandler(async (req, res) => {
+  res.render('register-finish', {
+    title: 'Registrasi Berhasil',
   });
 });
 
@@ -521,6 +531,7 @@ const store = asyncHandler(async (req, res) => {
 
   return res.status(201).json({
     message: 'Registrasi membership berhasil.',
+    redirectTo: '/membership/register/finish',
     data: {
       id: customer.id,
       name,
@@ -540,6 +551,7 @@ const store = asyncHandler(async (req, res) => {
 
 export default {
   communities,
+  finish,
   referral,
   register,
   store,
