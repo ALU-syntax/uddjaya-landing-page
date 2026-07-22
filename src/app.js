@@ -86,6 +86,19 @@ app.use(
 );
 
 app.use(
+  "/vendor/lottie",
+  express.static(
+    path.join(
+      projectRoot,
+      "node_modules",
+      "lottie-web",
+      "build",
+      "player",
+    ),
+  ),
+);
+
+app.use(
   '/vendor/izitoast',
   express.static(path.join(projectRoot, 'node_modules/izitoast/dist'), {
     maxAge: process.env.NODE_ENV === 'production' ? '1d' : 0,

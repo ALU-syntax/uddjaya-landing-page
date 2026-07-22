@@ -26,6 +26,9 @@ importers:
       izitoast:
         specifier: ^1.4.0
         version: 1.4.0
+      lottie-web:
+        specifier: ^5.13.0
+        version: 5.13.0
       mysql2:
         specifier: ^3.23.0
         version: 3.23.0(@types/node@26.1.1)
@@ -331,6 +334,9 @@ packages:
 
   long@5.3.2:
     resolution: {integrity: sha512-mNAgZ1GmyNhD7AuqnTG3/VQ26o760+ZYBPKjPvugO8+nLbYfX6TVpJPseBvopbdY+qpZ/lKUnmEc1LeZYS3QAA==}
+
+  lottie-web@5.13.0:
+    resolution: {integrity: sha512-+gfBXl6sxXMPe8tKQm7qzLnUy5DUPJPKIyRHwtpCpyUEYjHYRJC/5gjUvdkuO2c3JllrPtHXH5UJJK8LRYl5yQ==}
 
   lru.min@1.1.4:
     resolution: {integrity: sha512-DqC6n3QQ77zdFpCMASA1a3Jlb64Hv2N2DciFGkO/4L9+q/IpIAuRlKOvCXabtRW6cQf8usbmM6BE/TOPysCdIA==}
@@ -874,6 +880,8 @@ snapshots:
       p-locate: 4.1.0
 
   long@5.3.2: {}
+
+  lottie-web@5.13.0: {}
 
   lru.min@1.1.4: {}
 

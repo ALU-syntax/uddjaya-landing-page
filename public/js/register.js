@@ -11,6 +11,81 @@ document.querySelectorAll('.js-digits-only').forEach((input) => {
     input.addEventListener('input', () => limitDigits(input));
 });
 
+let submitLoaderAnimation = null;
+let submitLoaderHideTimer = null;
+
+function initializeSubmitLoaderAnimation() {
+    const animationElement = document.getElementById('submit-loader-animation');
+
+    if (!animationElement || submitLoaderAnimation) {
+        return;
+    }
+
+    if (!window.lottie?.loadAnimation) {
+        console.error('Library lottie-web belum berhasil dimuat.');
+        return;
+    }
+
+    submitLoaderAnimation = window.lottie.loadAnimation({
+        container: animationElement,
+        renderer: 'svg',
+        loop: true,
+        autoplay: false,
+        path: '/animations/morning-coffee.json',
+        rendererSettings: {
+            preserveAspectRatio: 'xMidYMid meet',
+            progressiveLoad: true,
+        },
+    });
+
+    submitLoaderAnimation.addEventListener('data_failed', () => {
+        console.error('File animasi Morning Coffee gagal dimuat.');
+    });
+}
+
+function showSubmitLoader(message = 'Mengirim data...') {
+    const loaderElement = document.getElementById('submit-loader');
+    const messageElement = document.getElementById('submit-loader-message');
+
+    if (!loaderElement) {
+        return;
+    }
+
+    initializeSubmitLoaderAnimation();
+    window.clearTimeout(submitLoaderHideTimer);
+
+    if (messageElement) {
+        messageElement.textContent = message;
+    }
+
+    loaderElement.hidden = false;
+    loaderElement.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('submit-loading');
+
+    window.requestAnimationFrame(() => {
+        loaderElement.classList.add('is-active');
+        submitLoaderAnimation?.goToAndPlay(0, true);
+        window.lottie?.resize();
+    });
+}
+
+function hideSubmitLoader() {
+    const loaderElement = document.getElementById('submit-loader');
+
+    if (!loaderElement) {
+        return;
+    }
+
+    loaderElement.classList.remove('is-active');
+    loaderElement.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('submit-loading');
+    submitLoaderAnimation?.stop();
+
+    submitLoaderHideTimer = window.setTimeout(() => {
+        loaderElement.hidden = true;
+    }, 200);
+}
+
 function showToast(type, message) {
     if (window.iziToast?.[type]) {
         window.iziToast[type]({
@@ -154,6 +229,12 @@ function setSubmitting(form, isSubmitting) {
     submitButton.textContent = isSubmitting
         ? 'Memproses...'
         : submitButton.dataset.defaultText;
+    submitButton.classList.toggle('is-submitting', isSubmitting);
+    submitButton.setAttribute('aria-disabled', String(isSubmitting));
+
+    if (!isSubmitting) {
+        submitButton.removeAttribute('aria-disabled');
+    }
 }
 
 function resetTurnstile() {
@@ -275,14 +356,26 @@ document.querySelectorAll('.register-form').forEach((form) => {
 
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
+
+        if (form.dataset.submitting === 'true') {
+            return;
+        }
+
         clearFormErrors(form);
 
         if (!form.reportValidity()) {
             return;
         }
 
+        form.dataset.submitting = 'true';
         setSubmitting(form, true);
+        showSubmitLoader(form.dataset.loadingText || 'Memproses pendaftaran...');
 
+        let keepLoaderVisible = false;
+
+        await new Promise((resolve) => {
+            setTimeout(resolve, 10000);
+        });
         try {
             const response = await fetch(form.action, {
                 method: form.method,
@@ -302,13 +395,31 @@ document.querySelectorAll('.register-form').forEach((form) => {
                 return;
             }
 
+            keepLoaderVisible = true;
             window.location.assign(payload.redirectTo ?? '/membership/register/finish');
         } catch (error) {
             showToast('error', 'Koneksi bermasalah. Silakan coba lagi.');
             resetTurnstile();
         } finally {
-            setSubmitting(form, false);
+            if (!keepLoaderVisible) {
+                delete form.dataset.submitting;
+                setSubmitting(form, false);
+                hideSubmitLoader();
+            }
         }
+    });
+});
+
+window.addEventListener('pageshow', (event) => {
+    if (!event.persisted) {
+        return;
+    }
+
+    hideSubmitLoader();
+
+    document.querySelectorAll('.register-form').forEach((form) => {
+        delete form.dataset.submitting;
+        setSubmitting(form, false);
     });
 });
 

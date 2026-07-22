@@ -137,12 +137,22 @@
         </section>
     </main>
 
+    <div id="submit-loader" class="submit-loader" aria-hidden="true" hidden>
+        <div class="submit-loader__content" role="status" aria-live="polite" aria-busy="true">
+            <div id="submit-loader-animation" class="submit-loader__animation" aria-hidden="true"></div>
+            <p id="submit-loader-message" class="submit-loader__message">Mengirim data...</p>
+            <p class="submit-loader__description">Mohon jangan tutup halaman ini.</p>
+        </div>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/js/select2.min.js" defer></script>
+    
     <% if (turnstileSiteKey) { %>
         <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <% } %>
     <script src="/vendor/izitoast/js/iziToast.min.js" defer></script>
+    <script src="/vendor/lottie/lottie.min.js" defer></script>
     <script src="/js/register.js" defer></script>
 </body>
 
