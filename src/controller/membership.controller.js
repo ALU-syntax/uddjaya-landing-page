@@ -234,6 +234,9 @@ const registrationSchema = z.object({
       'Referral harus diawali 08, hanya boleh angka, dan maksimal 13 digit.',
     ),
   ),
+  promo_kol: optionalString((schema) =>
+    schema.max(100, 'Promo KoL maksimal 100 karakter.'),
+  ),
 });
 
 const referralCheckSchema = z.object({
@@ -242,6 +245,12 @@ const referralCheckSchema = z.object({
       /^08\d{0,11}$/,
       'Nomor referral harus diawali 08, hanya boleh angka, dan maksimal 13 digit.',
     ),
+  ),
+});
+
+const promoKolCheckSchema = z.object({
+  code: requiredString('Promo KoL', (schema) =>
+    schema.max(100, 'Promo KoL maksimal 100 karakter.'),
   ),
 });
 
@@ -432,6 +441,26 @@ const referral = asyncHandler(async (req, res) => {
   });
 });
 
+const promoKol = asyncHandler(async (req, res) => {
+  const validation = promoKolCheckSchema.safeParse(req.query);
+
+  if (!validation.success) {
+    return res.status(400).json({
+      valid: false,
+      message:
+        validation.error.issues[0]?.message ?? 'Promo KoL tidak valid.',
+      errors: {
+        promo_kol: validation.error.issues.map((issue) => issue.message),
+      },
+    });
+  }
+
+  return res.status(404).json({
+    valid: false,
+    message: 'Promo KoL tidak ditemukan.',
+  });
+});
+
 const store = asyncHandler(async (req, res) => {
   const turnstileValidation = await validateTurnstile(req);
 
@@ -465,6 +494,7 @@ const store = asyncHandler(async (req, res) => {
     gender,
     community_id: communityId,
     referral,
+    promo_kol: promoKolCode,
   } = validation.data;
 
   const registrationOutlet = await findOutletById(outletId);
@@ -525,6 +555,15 @@ const store = asyncHandler(async (req, res) => {
       message: 'Nomor referral tidak terdaftar sebagai customer.',
       errors: {
         referral: ['Nomor referral tidak terdaftar sebagai customer.'],
+      },
+    });
+  }
+
+  if (promoKolCode) {
+    return res.status(400).json({
+      message: 'Promo KoL tidak ditemukan.',
+      errors: {
+        promo_kol: ['Promo KoL tidak ditemukan.'],
       },
     });
   }
@@ -669,6 +708,7 @@ const store = asyncHandler(async (req, res) => {
 export default {
   communities,
   finish,
+  promoKol,
   referral,
   register,
   store,

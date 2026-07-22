@@ -298,6 +298,19 @@ function setReferralChecking(button, isChecking) {
     button.textContent = isChecking ? 'Cek...' : button.dataset.defaultText;
 }
 
+function setPromoKolChecking(button, isChecking) {
+    if (!button) {
+        return;
+    }
+
+    if (!button.dataset.defaultText) {
+        button.dataset.defaultText = button.textContent;
+    }
+
+    button.disabled = isChecking;
+    button.textContent = isChecking ? 'Cek...' : button.dataset.defaultText;
+}
+
 async function checkReferral(form) {
     const referralInput = form.elements.namedItem('referral');
     const checkButton = form.querySelector('.js-referral-check');
@@ -344,6 +357,58 @@ async function checkReferral(form) {
     }
 }
 
+async function checkPromoKol(form) {
+    const promoKolInput = form.elements.namedItem('promo_kol');
+    const checkButton = form.querySelector('.js-promo-kol-check');
+    const promoKol = promoKolInput?.value.trim() ?? '';
+
+    if (!promoKolInput) {
+        return;
+    }
+
+    clearFieldError(promoKolInput);
+
+    if (!promoKol) {
+        setFieldError(promoKolInput, 'Isi Promo KoL terlebih dahulu.');
+        promoKolInput.focus();
+        return;
+    }
+
+    if (promoKol.length > 100) {
+        setFieldError(promoKolInput, 'Promo KoL maksimal 100 karakter.');
+        promoKolInput.focus();
+        return;
+    }
+
+    setPromoKolChecking(checkButton, true);
+
+    try {
+        const url = new URL(`${form.action.replace(/\/$/, '')}/promo-kol`);
+        url.searchParams.set('code', promoKol);
+
+        const response = await fetch(url, {
+            headers: {
+                Accept: 'application/json',
+            },
+        });
+        const payload = await parseResponse(response);
+        const message = payload.message ?? 'Promo KoL tidak ditemukan.';
+
+        if (!response.ok || !payload.valid) {
+            setFieldError(promoKolInput, message);
+            showToast('error', message);
+            return;
+        }
+
+        setFieldSuccess(promoKolInput, message);
+        showToast('success', message);
+    } catch (error) {
+        showToast('error', 'Koneksi bermasalah. Silakan coba lagi.');
+    } finally {
+        setPromoKolChecking(checkButton, false);
+    }
+}
+
 document.querySelectorAll('.register-form').forEach((form) => {
     form.querySelectorAll('input, select, textarea').forEach((control) => {
         control.addEventListener('input', () => clearFieldError(control));
@@ -352,6 +417,10 @@ document.querySelectorAll('.register-form').forEach((form) => {
 
     form.querySelector('.js-referral-check')?.addEventListener('click', () => {
         checkReferral(form);
+    });
+
+    form.querySelector('.js-promo-kol-check')?.addEventListener('click', () => {
+        checkPromoKol(form);
     });
 
     form.addEventListener('submit', async (event) => {

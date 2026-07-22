@@ -126,6 +126,21 @@
                     </div>
                 </div>
 
+                <div class="form-field">
+                    <label for="promo_kol">Promo KoL</label>
+                    <div class="input-action-row">
+                        <input
+                            id="promo_kol"
+                            name="promo_kol"
+                            type="text"
+                            maxlength="100"
+                            autocomplete="off"
+                            placeholder="Masukkan kode Promo KoL"
+                        >
+                        <button class="check-button js-promo-kol-check" type="button">Cek</button>
+                    </div>
+                </div>
+
                 <% if (turnstileSiteKey) { %>
                     <div class="form-field turnstile-field">
                         <div class="cf-turnstile" data-sitekey="<%= turnstileSiteKey %>" data-action="membership-register" data-theme="light"></div>
