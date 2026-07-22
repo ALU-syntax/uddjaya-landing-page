@@ -293,12 +293,33 @@ body.submit-loading {
     box-shadow:
         0 20px 25px rgba(0, 0, 0, 0.1),
         0 8px 10px rgba(0, 0, 0, 0.08);
+    transform: translateY(8px) scale(0.98);
+    transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+
+.submit-loader.is-active .submit-loader__content {
+    transform: translateY(0) scale(1);
+}
+
+.submit-loader.is-success .submit-loader__content {
+    border-top: 4px solid #25845b;
+    box-shadow:
+        0 24px 40px rgba(37, 132, 91, 0.18),
+        0 8px 14px rgba(15, 23, 42, 0.1);
 }
 
 .submit-loader__animation {
     width: 220px;
     height: 220px;
     margin: 0 auto;
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    transition: opacity 220ms ease, transform 220ms ease;
+}
+
+.submit-loader__animation.is-switching {
+    opacity: 0;
+    transform: translateY(10px) scale(0.94);
 }
 
 .submit-loader__message {
@@ -329,7 +350,9 @@ body.submit-loading {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .submit-loader {
+    .submit-loader,
+    .submit-loader__content,
+    .submit-loader__animation {
         transition: none;
     }
 }

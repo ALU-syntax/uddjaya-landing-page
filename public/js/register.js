@@ -12,40 +12,110 @@ document.querySelectorAll('.js-digits-only').forEach((input) => {
 });
 
 let submitLoaderAnimation = null;
+let submitLoaderAnimationState = null;
 let submitLoaderHideTimer = null;
+let submitLoaderCountdownTimer = null;
+let submitLoaderRedirectTimer = null;
 
-function initializeSubmitLoaderAnimation() {
+const SUBMIT_LOADER_ANIMATION_SWAP_DELAY = 220;
+const SUBMIT_SUCCESS_REDIRECT_DELAY = 5000;
+const SUBMIT_LOADER_ANIMATIONS = {
+    waiting: {
+        path: '/animations/morning-coffee.json',
+        loop: true,
+        errorMessage: 'File animasi Morning Coffee gagal dimuat.',
+    },
+    success: {
+        path: '/animations/success-checklist.json',
+        loop: false,
+        errorMessage: 'File animasi Success Checklist gagal dimuat.',
+    },
+};
+
+function wait(milliseconds) {
+    return new Promise((resolve) => {
+        window.setTimeout(resolve, milliseconds);
+    });
+}
+
+function setSubmitLoaderDescription(message) {
+    const descriptionElement = document.querySelector('.submit-loader__description');
+
+    if (descriptionElement) {
+        descriptionElement.textContent = message;
+    }
+}
+
+function loadSubmitLoaderAnimation(state, autoplay = false) {
     const animationElement = document.getElementById('submit-loader-animation');
+    const animationConfig = SUBMIT_LOADER_ANIMATIONS[state];
 
-    if (!animationElement || submitLoaderAnimation) {
-        return;
+    if (!animationElement || !animationConfig) {
+        return null;
+    }
+
+    if (submitLoaderAnimation && submitLoaderAnimationState === state) {
+        return submitLoaderAnimation;
     }
 
     if (!window.lottie?.loadAnimation) {
         console.error('Library lottie-web belum berhasil dimuat.');
-        return;
+        return null;
     }
+
+    submitLoaderAnimation?.destroy();
+    animationElement.replaceChildren();
 
     submitLoaderAnimation = window.lottie.loadAnimation({
         container: animationElement,
         renderer: 'svg',
-        loop: true,
-        autoplay: false,
-        path: '/animations/morning-coffee.json',
+        loop: animationConfig.loop,
+        autoplay,
+        path: animationConfig.path,
         rendererSettings: {
             preserveAspectRatio: 'xMidYMid meet',
             progressiveLoad: true,
         },
     });
+    submitLoaderAnimationState = state;
 
     submitLoaderAnimation.addEventListener('data_failed', () => {
-        console.error('File animasi Morning Coffee gagal dimuat.');
+        console.error(animationConfig.errorMessage);
+    });
+
+    return submitLoaderAnimation;
+}
+
+function initializeSubmitLoaderAnimation() {
+    loadSubmitLoaderAnimation('waiting');
+}
+
+async function switchSubmitLoaderAnimation(state) {
+    const loaderElement = document.getElementById('submit-loader');
+    const animationElement = document.getElementById('submit-loader-animation');
+
+    if (!animationElement) {
+        return;
+    }
+
+    animationElement.classList.add('is-switching');
+    await wait(SUBMIT_LOADER_ANIMATION_SWAP_DELAY);
+
+    const animation = loadSubmitLoaderAnimation(state);
+
+    loaderElement?.classList.toggle('is-success', state === 'success');
+
+    window.requestAnimationFrame(() => {
+        animationElement.classList.remove('is-switching');
+        animation?.goToAndPlay(0, true);
+        window.lottie?.resize();
     });
 }
 
 function showSubmitLoader(message = 'Mengirim data...') {
     const loaderElement = document.getElementById('submit-loader');
     const messageElement = document.getElementById('submit-loader-message');
+    const animationElement = document.getElementById('submit-loader-animation');
 
     if (!loaderElement) {
         return;
@@ -53,13 +123,18 @@ function showSubmitLoader(message = 'Mengirim data...') {
 
     initializeSubmitLoaderAnimation();
     window.clearTimeout(submitLoaderHideTimer);
+    window.clearTimeout(submitLoaderRedirectTimer);
+    window.clearInterval(submitLoaderCountdownTimer);
 
     if (messageElement) {
         messageElement.textContent = message;
     }
+    setSubmitLoaderDescription('Mohon jangan tutup halaman ini.');
 
     loaderElement.hidden = false;
     loaderElement.setAttribute('aria-hidden', 'false');
+    loaderElement.classList.remove('is-success');
+    animationElement?.classList.remove('is-switching');
     document.body.classList.add('submit-loading');
 
     window.requestAnimationFrame(() => {
@@ -78,12 +153,47 @@ function hideSubmitLoader() {
 
     loaderElement.classList.remove('is-active');
     loaderElement.setAttribute('aria-hidden', 'true');
+    loaderElement.classList.remove('is-success');
     document.body.classList.remove('submit-loading');
     submitLoaderAnimation?.stop();
+    window.clearTimeout(submitLoaderRedirectTimer);
+    window.clearInterval(submitLoaderCountdownTimer);
 
     submitLoaderHideTimer = window.setTimeout(() => {
         loaderElement.hidden = true;
     }, 200);
+}
+
+async function showSubmitSuccessBeforeRedirect(redirectTo) {
+    const messageElement = document.getElementById('submit-loader-message');
+    let secondsRemaining = Math.ceil(SUBMIT_SUCCESS_REDIRECT_DELAY / 1000);
+
+    if (messageElement) {
+        messageElement.textContent = 'Pendaftaran berhasil!';
+    }
+
+    await switchSubmitLoaderAnimation('success');
+
+    const updateCountdown = () => {
+        setSubmitLoaderDescription(
+            secondsRemaining > 0
+                ? `Mengalihkan halaman dalam ${secondsRemaining} detik...`
+                : 'Mengalihkan halaman sekarang...'
+        );
+    };
+
+    updateCountdown();
+    submitLoaderCountdownTimer = window.setInterval(() => {
+        secondsRemaining -= 1;
+        updateCountdown();
+    }, 1000);
+
+    await new Promise((resolve) => {
+        submitLoaderRedirectTimer = window.setTimeout(resolve, SUBMIT_SUCCESS_REDIRECT_DELAY);
+    });
+
+    window.clearInterval(submitLoaderCountdownTimer);
+    window.location.assign(redirectTo);
 }
 
 function showToast(type, message) {
@@ -462,7 +572,7 @@ document.querySelectorAll('.register-form').forEach((form) => {
             }
 
             keepLoaderVisible = true;
-            window.location.assign(payload.redirectTo ?? '/membership/register/finish');
+            await showSubmitSuccessBeforeRedirect(payload.redirectTo ?? '/membership/register/finish');
         } catch (error) {
             showToast('error', 'Koneksi bermasalah. Silakan coba lagi.');
             resetTurnstile();
