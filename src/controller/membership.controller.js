@@ -1,3 +1,9 @@
+import {
+  createHmac,
+  randomBytes,
+  timingSafeEqual,
+} from 'node:crypto';
+
 import asyncHandler from 'express-async-handler';
 import { z } from 'zod';
 
@@ -25,6 +31,8 @@ const referralPointLog = 'mendapatkan poin dari referee sebesar 75 poin';
 const turnstileSiteverifyUrl =
   'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 const turnstileAction = 'membership-register';
+const finishAccessCookieName = 'membership_register_finish';
+const finishAccessMaxAgeMs = 10 * 60 * 1000;
 
 const normalizeEnv = (value) => {
   if (typeof value !== 'string') {
@@ -34,6 +42,103 @@ const normalizeEnv = (value) => {
   const trimmed = value.trim();
 
   return trimmed && trimmed.toLowerCase() !== 'null' ? trimmed : null;
+};
+
+const generatedFinishAccessSecret = randomBytes(32).toString('hex');
+
+const getFinishAccessSecret = () =>
+  normalizeEnv(process.env.FINISH_ACCESS_SECRET) ??
+  normalizeEnv(process.env.COOKIE_SECRET) ??
+  generatedFinishAccessSecret;
+
+const getCookieOptions = () => ({
+  httpOnly: true,
+  maxAge: finishAccessMaxAgeMs,
+  path: '/membership/register/finish',
+  sameSite: 'lax',
+  secure: process.env.NODE_ENV === 'production',
+});
+
+const signFinishAccessPayload = (payload) =>
+  createHmac('sha256', getFinishAccessSecret())
+    .update(payload)
+    .digest('base64url');
+
+const createFinishAccessToken = () => {
+  const payload = `${Date.now()}.${randomBytes(16).toString('base64url')}`;
+
+  return `${payload}.${signFinishAccessPayload(payload)}`;
+};
+
+const parseCookies = (cookieHeader = '') =>
+  cookieHeader
+    .split(';')
+    .map((cookie) => cookie.trim())
+    .filter(Boolean)
+    .reduce((cookies, cookie) => {
+      const separatorIndex = cookie.indexOf('=');
+
+      if (separatorIndex === -1) {
+        return cookies;
+      }
+
+      const name = cookie.slice(0, separatorIndex);
+      const value = cookie.slice(separatorIndex + 1);
+
+      try {
+        cookies[name] = decodeURIComponent(value);
+      } catch {
+        cookies[name] = value;
+      }
+
+      return cookies;
+    }, {});
+
+const isValidFinishAccessToken = (token) => {
+  if (typeof token !== 'string') {
+    return false;
+  }
+
+  const [timestamp, nonce, signature, ...extraParts] = token.split('.');
+
+  if (!timestamp || !nonce || !signature || extraParts.length > 0) {
+    return false;
+  }
+
+  const createdAt = Number(timestamp);
+
+  if (
+    !Number.isFinite(createdAt) ||
+    Date.now() - createdAt > finishAccessMaxAgeMs
+  ) {
+    return false;
+  }
+
+  const payload = `${timestamp}.${nonce}`;
+  const expectedSignature = signFinishAccessPayload(payload);
+  const signatureBuffer = Buffer.from(signature);
+  const expectedSignatureBuffer = Buffer.from(expectedSignature);
+
+  return (
+    signatureBuffer.length === expectedSignatureBuffer.length &&
+    timingSafeEqual(signatureBuffer, expectedSignatureBuffer)
+  );
+};
+
+const setFinishAccessCookie = (res) => {
+  res.cookie(
+    finishAccessCookieName,
+    createFinishAccessToken(),
+    getCookieOptions(),
+  );
+};
+
+const clearFinishAccessCookie = (res) => {
+  res.clearCookie(finishAccessCookieName, {
+    path: getCookieOptions().path,
+    sameSite: getCookieOptions().sameSite,
+    secure: getCookieOptions().secure,
+  });
 };
 
 const getTurnstileSiteKey = () => normalizeEnv(process.env.TURNSTILE_SITE_KEY);
@@ -277,6 +382,16 @@ const register = asyncHandler(async (req, res) => {
 });
 
 const finish = asyncHandler(async (req, res) => {
+  const cookies = parseCookies(req.headers.cookie);
+  const finishAccessToken = cookies[finishAccessCookieName];
+
+  res.set('Cache-Control', 'no-store');
+  clearFinishAccessCookie(res);
+
+  if (!isValidFinishAccessToken(finishAccessToken)) {
+    return res.redirect('/membership/register');
+  }
+
   res.render('register-finish', {
     title: 'Registrasi Berhasil',
   });
@@ -528,6 +643,8 @@ const store = asyncHandler(async (req, res) => {
       },
     ],
   });
+
+  setFinishAccessCookie(res);
 
   return res.status(201).json({
     message: 'Registrasi membership berhasil.',

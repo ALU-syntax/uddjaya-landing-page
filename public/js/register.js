@@ -373,9 +373,6 @@ document.querySelectorAll('.register-form').forEach((form) => {
 
         let keepLoaderVisible = false;
 
-        await new Promise((resolve) => {
-            setTimeout(resolve, 10000);
-        });
         try {
             const response = await fetch(form.action, {
                 method: form.method,
