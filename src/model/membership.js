@@ -19,24 +19,36 @@ export async function runInTransaction(callback) {
   }
 }
 
-export async function findRegistrationLinkByCode(code) {
-  const [rows] = await pool.query(
+export async function findOutletById(outletId) {
+  const [outlets] = await pool.query(
     `
       SELECT
-        membership_registration_links.id,
-        membership_registration_links.name,
-        membership_registration_links.code,
-        membership_registration_links.outlet_id,
-        outlets.name AS outlet_name
-      FROM membership_registration_links
-      JOIN outlets ON outlets.id = membership_registration_links.outlet_id
-      WHERE membership_registration_links.code = ?
+        id AS outlet_id,
+        name AS outlet_name
+      FROM outlets
+      WHERE id = ?
+        AND is_active = 1
       LIMIT 1
     `,
-    [code],
+    [outletId],
   );
 
-  return rows[0] ?? null;
+  return outlets[0] ?? null;
+}
+
+export async function findOutlets() {
+  const [outlets] = await pool.query(
+    `
+      SELECT
+        id,
+        name
+      FROM outlets
+      WHERE is_active = 1
+      ORDER BY id ASC
+    `,
+  );
+
+  return outlets;
 }
 
 export async function findCustomerByPhone(phone) {
@@ -103,34 +115,29 @@ export async function findUsedCustomerContacts(phone, email) {
   };
 }
 
-export async function findCommunitiesByOutletId(outletId) {
+export async function findCommunities() {
   const [communities] = await pool.query(
     `
       SELECT id, name
       FROM communities
-      WHERE outlet_id = ?
-        AND status = 1
-        AND deleted_at IS NULL
+      WHERE deleted_at IS NULL
       ORDER BY name ASC
     `,
-    [outletId],
   );
 
   return communities;
 }
 
-export async function findActiveCommunityByIdAndOutletId(id, outletId) {
+export async function findCommunityById(id) {
   const [communities] = await pool.query(
     `
       SELECT id, name, exp
       FROM communities
       WHERE id = ?
-        AND outlet_id = ?
-        AND status = 1
         AND deleted_at IS NULL
       LIMIT 1
     `,
-    [id, outletId],
+    [id],
   );
 
   return communities[0] ?? null;

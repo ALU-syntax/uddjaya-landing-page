@@ -31,7 +31,7 @@
                 <p>#HariHariBerdjaya</p>
             </div>
 
-            <form class="register-form" action="/membership/register/<%= registrationLink.code %>" method="post">
+            <form class="register-form" action="/membership/register" method="post">
                 <div class="form-field">
                     <label for="name">Nama <span class="required-mark">*</span></label>
                     <input id="name" name="name" type="text" autocomplete="name" placeholder="Djayadi" required>
@@ -84,6 +84,16 @@
                         <option value="" selected disabled>Pilih gender</option>
                         <option value="laki-laki">Laki-laki</option>
                         <option value="perempuan">Perempuan</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label for="outlet">Outlet <span class="required-mark">*</span></label>
+                    <select id="outlet" class="js-outlet-select" name="outlet_id" required>
+                        <option value="" selected disabled>Pilih outlet</option>
+                        <% (outlets || []).forEach((outlet) => { %>
+                            <option value="<%= outlet.id %>"><%= outlet.name %></option>
+                        <% }) %>
                     </select>
                 </div>
 

@@ -7,11 +7,12 @@ import {
   createCustomerPointExpLog,
   createCustomerReferral,
   findActivePettyCashByOutletId,
-  findActiveCommunityByIdAndOutletId,
-  findCommunitiesByOutletId,
+  findCommunityById,
+  findCommunities,
   findCustomerByPhone,
   findLowestActiveLevelMembership,
-  findRegistrationLinkByCode,
+  findOutletById,
+  findOutlets,
   findUsedCustomerContacts,
   incrementCustomerPoint,
   runInTransaction,
@@ -65,6 +66,14 @@ const optionalString = (validate = (schema) => schema) =>
     validate(z.string()),
   );
 
+const requiredInteger = (fieldName) =>
+  requiredString(fieldName, (schema) =>
+    schema
+      .regex(/^\d+$/, `${fieldName} tidak valid.`)
+      .transform((value) => Number(value))
+      .refine((value) => value > 0, `${fieldName} tidak valid.`),
+  );
+
 function isValidDateInput(value) {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
 
@@ -83,6 +92,7 @@ function isValidDateInput(value) {
 }
 
 const registrationSchema = z.object({
+  outlet_id: requiredInteger('Outlet'),
   name: requiredString('Nama'),
   phone: requiredString('Nomor telepon', (schema) =>
     schema.regex(
@@ -156,10 +166,6 @@ function getMembershipExpiredDate() {
   expiredDate.setFullYear(expiredDate.getFullYear() + 1);
 
   return formatDateId(expiredDate);
-}
-
-function sendRegistrationLinkNotFound(res) {
-  return res.status(404).send('Link registrasi membership tidak ditemukan.');
 }
 
 function getHeaderFirstValue(value) {
@@ -256,43 +262,21 @@ async function validateTurnstile(req) {
 }
 
 const register = asyncHandler(async (req, res) => {
-  const registrationLink = await findRegistrationLinkByCode(req.params.code);
-
-  if (!registrationLink) {
-    return sendRegistrationLinkNotFound(res);
-  }
-
   res.render('register', {
-    title: `Registrasi Membership ${registrationLink.name}`,
-    communities: [],
-    registrationLink,
+    title: 'Registrasi Membership',
+    communities: await findCommunities(),
+    outlets: await findOutlets(),
     turnstileSiteKey: getTurnstileSiteKey(),
   });
 });
 
 const communities = asyncHandler(async (req, res) => {
-  const registrationLink = await findRegistrationLinkByCode(req.params.code);
-
-  if (!registrationLink) {
-    return res.status(404).json({
-      message: 'Link registrasi membership tidak ditemukan.',
-    });
-  }
-
   return res.json({
-    data: await findCommunitiesByOutletId(registrationLink.outlet_id),
+    data: await findCommunities(),
   });
 });
 
 const referral = asyncHandler(async (req, res) => {
-  const registrationLink = await findRegistrationLinkByCode(req.params.code);
-
-  if (!registrationLink) {
-    return res.status(404).json({
-      message: 'Link registrasi membership tidak ditemukan.',
-    });
-  }
-
   const validation = referralCheckSchema.safeParse(req.query);
 
   if (!validation.success) {
@@ -322,12 +306,6 @@ const referral = asyncHandler(async (req, res) => {
 });
 
 const store = asyncHandler(async (req, res) => {
-  const registrationLink = await findRegistrationLinkByCode(req.params.code);
-
-  if (!registrationLink) {
-    return sendRegistrationLinkNotFound(res);
-  }
-
   const turnstileValidation = await validateTurnstile(req);
 
   if (!turnstileValidation.success) {
@@ -351,6 +329,7 @@ const store = asyncHandler(async (req, res) => {
   }
 
   const {
+    outlet_id: outletId,
     name,
     phone,
     email,
@@ -361,8 +340,19 @@ const store = asyncHandler(async (req, res) => {
     referral,
   } = validation.data;
 
+  const registrationOutlet = await findOutletById(outletId);
+
+  if (!registrationOutlet) {
+    return res.status(400).json({
+      message: 'Outlet tidak ditemukan.',
+      errors: {
+        outlet_id: ['Outlet tidak ditemukan.'],
+      },
+    });
+  }
+
   const activePettyCash = await findActivePettyCashByOutletId(
-    registrationLink.outlet_id,
+    registrationOutlet.outlet_id,
   );
 
   if (!activePettyCash) {
@@ -412,18 +402,13 @@ const store = asyncHandler(async (req, res) => {
     });
   }
 
-  const community = communityId
-    ? await findActiveCommunityByIdAndOutletId(
-        communityId,
-        registrationLink.outlet_id,
-      )
-    : null;
+  const community = communityId ? await findCommunityById(communityId) : null;
 
   if (communityId && !community) {
     return res.status(400).json({
-      message: 'Community tidak valid atau tidak aktif.',
+      message: 'Community tidak valid.',
       errors: {
-        community_id: ['Community tidak valid atau tidak aktif.'],
+        community_id: ['Community tidak valid.'],
       },
     });
   }
@@ -545,7 +530,7 @@ const store = asyncHandler(async (req, res) => {
       communityId: communityId || null,
       communityName: community?.name ?? null,
       levelMembershipId: lowestLevelMembership.id,
-      outletName: registrationLink.outlet_name,
+      outletName: registrationOutlet.outlet_name,
       referralId: referralCustomer?.id ?? null,
     },
   });

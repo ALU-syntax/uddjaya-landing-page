@@ -178,7 +178,9 @@ async function loadCommunities(form) {
     select.disabled = true;
 
     try {
-        const response = await fetch(`${form.action.replace(/\/$/, '')}/communities`, {
+        const url = new URL(`${form.action.replace(/\/$/, '')}/communities`);
+
+        const response = await fetch(url, {
             headers: {
                 Accept: 'application/json',
             },
@@ -306,8 +308,11 @@ document.querySelectorAll('.register-form').forEach((form) => {
             resetTurnstile();
 
             if (window.jQuery?.fn?.select2) {
+                window.jQuery('.js-outlet-select').val('').trigger('change');
                 window.jQuery('.js-community-select').val('').trigger('change');
             }
+
+            loadCommunities(form);
         } catch (error) {
             showToast('error', 'Koneksi bermasalah. Silakan coba lagi.');
             resetTurnstile();
@@ -325,6 +330,11 @@ window.addEventListener('DOMContentLoaded', () => {
 
         return;
     }
+
+    window.jQuery('.js-outlet-select').select2({
+        placeholder: 'Pilih outlet',
+        width: '100%',
+    });
 
     window.jQuery('.js-community-select').select2({
         placeholder: 'Pilih community',
