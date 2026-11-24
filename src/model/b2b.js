@@ -1,5 +1,5 @@
 import pool from '../config/mysql.js';
-import { accountProviders, regionLevels } from '../constants/b2b.js';
+import { regionLevels } from '../constants/b2b.js';
 
 // Penulisan ke tabel b2b_* milik backoffice (repo pos-udjay). Urutan & isi kolom mengikuti
 // App\Services\B2b\CustomerService::create + SequenceService::customerCode + ActivityLogger.
@@ -44,6 +44,21 @@ export async function runInTransaction(callback, attempts = 3) {
       connection.release();
     }
   }
+}
+
+/**
+ * Bank & e-wallet aktif dari master account_providers (diisi AccountProviderSeeder di pos-udjay), urut seperti backoffice.
+ * @returns {Promise<Map<string, { code: string, type: string, name: string }>>}
+ */
+export async function findActiveAccountProviders() {
+  const [rows] = await pool.query(`
+    SELECT code, type, name
+    FROM account_providers
+    WHERE is_active = 1
+    ORDER BY sort_order, name
+  `);
+
+  return new Map(rows.map((row) => [row.code, row]));
 }
 
 export async function findProvinces() {
@@ -170,14 +185,15 @@ async function nextCustomerCode(connection, now) {
 }
 
 /** = CustomerAccount::summary(): "BCA 1234567890 a.n. PT Maju". */
-const accountSummary = (account) =>
-  `${accountProviders[account.provider]?.[1] ?? account.provider.toUpperCase()} ${account.account_number} a.n. ${account.account_name}`;
+const accountSummary = (account, providers) =>
+  `${providers.get(account.provider)?.name ?? account.provider.toUpperCase()} ${account.account_number} a.n. ${account.account_name}`;
 
 /**
  * Simpan pendaftar sebagai customer B2B aktif beserta rekeningnya, lalu catat log "customer.created".
  * Pengaturan reminder diisi seperti form backoffice yang tidak dicentang (mati, daftar kosong).
+ * `providers` = hasil findActiveAccountProviders(), untuk jenis rekening & ringkasan log.
  */
-export async function createPortalCustomer(data, connection) {
+export async function createPortalCustomer(data, providers, connection) {
   const now = wibNow();
   const code = await nextCustomerCode(connection, now);
   const [result] = await connection.query(
@@ -216,7 +232,7 @@ export async function createPortalCustomer(data, connection) {
         INSERT INTO b2b_customer_accounts (b2b_customer_id, type, provider, account_number, account_name, notes, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, NULL, ?, ?)
       `,
-      [customerId, accountProviders[account.provider][0], account.provider, account.account_number, account.account_name, now, now],
+      [customerId, providers.get(account.provider).type, account.provider, account.account_number, account.account_name, now, now],
     );
   }
 
@@ -225,7 +241,7 @@ export async function createPortalCustomer(data, connection) {
       INSERT INTO b2b_activity_logs (user_id, subject_type, subject_id, action, changes, created_at)
       VALUES (NULL, ?, ?, 'customer.created', ?, ?)
     `,
-    [customerMorphClass, customerId, JSON.stringify({ accounts: data.accounts.map(accountSummary), registered_via: 'portal' }), now],
+    [customerMorphClass, customerId, JSON.stringify({ accounts: data.accounts.map((account) => accountSummary(account, providers)), registered_via: 'portal' }), now],
   );
 
   return { id: customerId, code };

@@ -2,16 +2,15 @@ import asyncHandler from 'express-async-handler';
 import { z } from 'zod';
 
 import {
-  accountProviderGroups,
-  accountProviders,
   accountTypeEwallet,
   customerTypes,
-  ewalletProviderCodes,
+  groupAccountProviders,
   maxAccountsPerCustomer,
   regionLevels,
 } from '../constants/b2b.js';
 import {
   createPortalCustomer,
+  findActiveAccountProviders,
   findInvalidRegions,
   findProvinces,
   findRegionChildren,
@@ -80,18 +79,21 @@ const registrationSchema = z
   });
 
 /** = CustomerAccount::normalizeNumber(): angka saja; nomor e-wallet 62… diseragamkan ke 08…. */
-function normalizeAccountNumber(number, provider) {
+function normalizeAccountNumber(number, provider, providers) {
   let digits = String(number ?? '').replace(/\D+/g, '');
 
-  if (accountProviders[provider]?.[0] === accountTypeEwallet && digits.startsWith('62')) {
+  if (providers.get(provider)?.type === accountTypeEwallet && digits.startsWith('62')) {
     digits = `0${digits.slice(2)}`;
   }
 
   return digits;
 }
 
-/** = CustomerRequest::normalizedAccounts() + aturan rekening. Baris yang seluruhnya kosong dibuang. */
-function parseAccounts(rows) {
+/**
+ * = CustomerRequest::normalizedAccounts() + aturan rekening. Baris yang seluruhnya kosong dibuang.
+ * `providers` = bank/e-wallet aktif dari account_providers; provider nonaktif tidak bisa dipakai pendaftar baru.
+ */
+function parseAccounts(rows, providers) {
   const accounts = rows
     .filter((row) => row && typeof row === 'object')
     .map((row) => {
@@ -99,7 +101,7 @@ function parseAccounts(rows) {
 
       return {
         provider,
-        account_number: normalizeAccountNumber(row.account_number, provider),
+        account_number: normalizeAccountNumber(row.account_number, provider, providers),
         account_name: String(row.account_name ?? '').trim(),
       };
     })
@@ -110,7 +112,7 @@ function parseAccounts(rows) {
   accounts.forEach((account, index) => {
     const key = `accounts.${index}`;
 
-    if (!accountProviders[account.provider]) {
+    if (!providers.has(account.provider)) {
       errors[`${key}.provider`] = ['Pilih bank / e-wallet dari daftar.'];
     }
 
@@ -118,7 +120,7 @@ function parseAccounts(rows) {
       errors[`${key}.account_number`] = ['Nomor wajib diisi.'];
     } else if (!/^\d{6,20}$/.test(account.account_number)) {
       errors[`${key}.account_number`] = ['Nomor harus 6–20 angka.'];
-    } else if (accountProviders[account.provider]?.[0] === accountTypeEwallet && !/^08\d{8,13}$/.test(account.account_number)) {
+    } else if (providers.get(account.provider)?.type === accountTypeEwallet && !/^08\d{8,13}$/.test(account.account_number)) {
       errors[`${key}.account_number`] = ['Nomor e-wallet berupa nomor HP, contoh 081234567890.'];
     }
 
@@ -147,11 +149,13 @@ function invalid(res, errors) {
 }
 
 const register = asyncHandler(async (req, res) => {
+  const providers = await findActiveAccountProviders();
+
   res.render('b2b/register', {
     title: 'Pendaftaran Customer B2B',
     customerTypes,
-    providerGroups: accountProviderGroups(),
-    ewalletProviderCodes,
+    providerGroups: groupAccountProviders(providers),
+    ewalletProviderCodes: [...providers.values()].filter((provider) => provider.type === accountTypeEwallet).map((provider) => provider.code),
     maxAccounts: maxAccountsPerCustomer,
     provinces: await findProvinces(),
     turnstileSiteKey: getTurnstileSiteKey(),
@@ -213,7 +217,8 @@ const store = asyncHandler(async (req, res) => {
   }
 
   const data = validation.data;
-  const { accounts, errors: accountErrors } = parseAccounts(data.accounts);
+  const providers = await findActiveAccountProviders();
+  const { accounts, errors: accountErrors } = parseAccounts(data.accounts, providers);
 
   if (Object.keys(accountErrors).length > 0) {
     return invalid(res, accountErrors);
@@ -240,7 +245,7 @@ const store = asyncHandler(async (req, res) => {
   }
 
   try {
-    const customer = await runInTransaction((connection) => createPortalCustomer({ ...data, accounts }, connection));
+    const customer = await runInTransaction((connection) => createPortalCustomer({ ...data, accounts }, providers, connection));
 
     return res.status(201).json({
       message: 'Pendaftaran berhasil.',

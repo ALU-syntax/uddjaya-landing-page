@@ -11,35 +11,7 @@ export const customerTypes = {
 export const accountTypeBank = 'bank';
 export const accountTypeEwallet = 'ewallet';
 
-// = App\Models\B2b\CustomerAccount::PROVIDERS (kode => [jenis, nama tampil]). Daftar baku, tanpa ketik bebas.
-export const accountProviders = {
-  bca: [accountTypeBank, 'BCA'],
-  mandiri: [accountTypeBank, 'Mandiri'],
-  bri: [accountTypeBank, 'BRI'],
-  bni: [accountTypeBank, 'BNI'],
-  bsi: [accountTypeBank, 'BSI'],
-  cimb: [accountTypeBank, 'CIMB Niaga'],
-  danamon: [accountTypeBank, 'Danamon'],
-  permata: [accountTypeBank, 'Permata'],
-  btn: [accountTypeBank, 'BTN'],
-  ocbc: [accountTypeBank, 'OCBC'],
-  panin: [accountTypeBank, 'Panin'],
-  maybank: [accountTypeBank, 'Maybank'],
-  mega: [accountTypeBank, 'Bank Mega'],
-  jenius: [accountTypeBank, 'Jenius / SMBC Indonesia'],
-  jago: [accountTypeBank, 'Bank Jago'],
-  seabank: [accountTypeBank, 'SeaBank'],
-  blu: [accountTypeBank, 'blu by BCA Digital'],
-  bjb: [accountTypeBank, 'Bank BJB'],
-  dki: [accountTypeBank, 'Bank DKI'],
-  jateng: [accountTypeBank, 'Bank Jateng'],
-  jatim: [accountTypeBank, 'Bank Jatim'],
-  gopay: [accountTypeEwallet, 'GoPay'],
-  ovo: [accountTypeEwallet, 'OVO'],
-  dana: [accountTypeEwallet, 'DANA'],
-  shopeepay: [accountTypeEwallet, 'ShopeePay'],
-  linkaja: [accountTypeEwallet, 'LinkAja'],
-};
+// Daftar bank / e-wallet dibaca dari tabel master account_providers (sama dengan backoffice), bukan dari kode.
 
 // = CustomerAccount::MAX_PER_CUSTOMER
 export const maxAccountsPerCustomer = 10;
@@ -52,17 +24,13 @@ export const regionLevels = {
 };
 
 /** Pilihan dropdown dikelompokkan per jenis: [{ label: 'Bank', options: [{ code, name }] }, ...]. */
-export function accountProviderGroups() {
+export function groupAccountProviders(providers) {
   const labels = { [accountTypeBank]: 'Bank', [accountTypeEwallet]: 'E-wallet' };
 
-  return Object.entries(labels).map(([type, label]) => ({
-    label,
-    options: Object.entries(accountProviders)
-      .filter(([, [providerType]]) => providerType === type)
-      .map(([code, [, name]]) => ({ code, name })),
-  }));
+  return Object.entries(labels)
+    .map(([type, label]) => ({
+      label,
+      options: [...providers.values()].filter((provider) => provider.type === type).map(({ code, name }) => ({ code, name })),
+    }))
+    .filter((group) => group.options.length > 0);
 }
-
-export const ewalletProviderCodes = Object.entries(accountProviders)
-  .filter(([, [type]]) => type === accountTypeEwallet)
-  .map(([code]) => code);
