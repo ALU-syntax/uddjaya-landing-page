@@ -124,18 +124,47 @@ app.use((req, res) => {
   return res.status(404).send('Halaman tidak ditemukan.');
 });
 
-app.use((error, req, res, next) => {
-  console.error(error);
+// Pesan untuk request yang ditolak middleware (body-parser dll.). Pesan asli error tidak diteruskan
+// karena bisa memuat potongan isi request (mis. pesan JSON.parse).
+const clientErrorMessages = {
+  400: 'Data yang dikirim tidak valid.',
+  413: 'Data yang dikirim terlalu besar.',
+  415: 'Format data tidak didukung.',
+};
 
+app.use((error, req, res, next) => {
   if (res.headersSent) {
+    console.error(error);
+
     return next(error);
   }
 
-  return res.status(500).send(
-    process.env.NODE_ENV === 'production'
-      ? 'Terjadi kesalahan pada server.'
-      : error.stack,
-  );
+  // Error 4xx (body rusak, terlalu besar, encoding tidak didukung) membawa status sendiri; selain itu = kesalahan server.
+  const errorStatus = Number(error?.status ?? error?.statusCode);
+  const isClientError = Number.isInteger(errorStatus) && errorStatus >= 400 && errorStatus < 500;
+  const status = isClientError ? errorStatus : 500;
+
+  if (isClientError) {
+    // Cukup satu baris: request sampah/serangan tidak perlu stack trace di log PM2.
+    console.warn(`${status} ${req.method} ${req.originalUrl}: ${error.type ?? error.code ?? error.message}`);
+  } else {
+    console.error(error);
+  }
+
+  let message;
+
+  if (isClientError) {
+    message = clientErrorMessages[status] ?? 'Permintaan tidak dapat diproses.';
+  } else {
+    message = process.env.NODE_ENV === 'production' ? 'Terjadi kesalahan pada server.' : error.stack;
+  }
+
+  // Form membership & B2B mengirim JSON lewat fetch dan membaca { message }.
+  if (req.is('application/json') || req.accepts(['html', 'json']) === 'json') {
+    return res.status(status).json({ message });
+  }
+
+  return res.status(status).send(message);
 });
 
 const host = process.env.HOST ?? '127.0.0.1';
