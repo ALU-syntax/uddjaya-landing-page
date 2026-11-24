@@ -153,9 +153,124 @@
     });
   });
 
-  // Pengiriman form dibangun di langkah berikutnya (POST /b2b/register).
-  document.getElementById('b2b-register-form').addEventListener('submit', (event) => {
+  // Kirim pendaftaran sebagai JSON (rekening berupa array), lalu tampilkan error per field dari server.
+  const form = document.getElementById('b2b-register-form');
+  const submitButton = form.querySelector('.b2b-submit');
+
+  // Kunci error server: "phone", "accounts.0.account_number", "turnstile", "form".
+  function fieldFor(key) {
+    if (key === 'turnstile') {
+      return form.querySelector('.turnstile-field');
+    }
+
+    const [name, index, sub] = key.split('.');
+    const inputName = index !== undefined && sub ? `${name}[${index}][${sub}]` : name;
+
+    return form.querySelector(`[name="${inputName}"]`)?.closest('.form-field') ?? null;
+  }
+
+  function clearError(field) {
+    field?.classList.remove('is-invalid');
+    field?.querySelector('.field-error')?.remove();
+  }
+
+  function clearErrors() {
+    form.querySelectorAll('.form-field.is-invalid').forEach(clearError);
+  }
+
+  function showErrors(errors) {
+    let first = null;
+
+    Object.entries(errors || {}).forEach(([key, messages]) => {
+      const field = fieldFor(key);
+
+      if (!field) {
+        return;
+      }
+
+      clearError(field);
+      field.classList.add('is-invalid');
+      const error = document.createElement('small');
+      error.className = 'field-error';
+      error.textContent = messages[0];
+      field.appendChild(error);
+      first ??= field;
+    });
+
+    first?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    return first !== null;
+  }
+
+  form.addEventListener('input', (event) => clearError(event.target.closest('.form-field')));
+  form.addEventListener('change', (event) => clearError(event.target.closest('.form-field')));
+  window.addEventListener('load', () => window.jQuery?.('.js-region').on('change', function () {
+    clearError(this.closest('.form-field'));
+  }));
+
+  function payload() {
+    const value = (name) => form.elements[name]?.value ?? '';
+    const data = {
+      type: form.querySelector('input[name="type"]:checked')?.value ?? '',
+      accounts: [...accountRows.querySelectorAll('.b2b-account')].map((row) => ({
+        provider: row.querySelector('[data-field="provider"]').value,
+        account_number: row.querySelector('[data-field="account_number"]').value,
+        account_name: row.querySelector('[data-field="account_name"]').value,
+      })),
+      'cf-turnstile-response': value('cf-turnstile-response'),
+    };
+
+    ['name', 'npwp', 'contact_name', 'phone', 'email', 'address', 'province_code', 'regency_code', 'district_code', 'village_code', 'postal_code']
+      .forEach((name) => { data[name] = value(name); });
+
+    return data;
+  }
+
+  function showSuccess(result) {
+    const success = document.getElementById('b2b-success');
+
+    success.querySelector('[data-success-name]').textContent = result.data?.name ?? '';
+    success.querySelector('[data-success-code]').textContent = result.data?.code ?? '';
+    window.iziToast?.destroy();
+    form.hidden = true;
+    success.hidden = false;
+    success.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  form.addEventListener('submit', async (event) => {
     event.preventDefault();
-    showToast('info', 'Penyimpanan pendaftaran belum aktif.');
+
+    if (submitButton.disabled) {
+      return;
+    }
+
+    clearErrors();
+    submitButton.disabled = true;
+    submitButton.textContent = 'Mengirim...';
+
+    try {
+      const response = await fetch(form.action, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(payload()),
+      });
+      const result = await response.json().catch(() => ({}));
+
+      if (response.ok) {
+        showSuccess(result);
+
+        return;
+      }
+
+      const shown = showErrors(result.errors);
+      showToast('error', shown ? 'Periksa kembali isian yang ditandai.' : result.message || 'Pendaftaran gagal. Silakan coba lagi.');
+    } catch {
+      showToast('error', 'Koneksi bermasalah. Silakan coba lagi.');
+    } finally {
+      // Token Turnstile hanya berlaku sekali; minta token baru setelah setiap percobaan.
+      window.turnstile?.reset?.();
+      submitButton.disabled = false;
+      submitButton.textContent = 'Daftar sebagai Customer B2B';
+    }
   });
 })();

@@ -77,6 +77,7 @@ body {
 
 /* Form */
 .b2b-form { display: grid; gap: 26px; padding: 40px; }
+.b2b-form[hidden] { display: none; }
 
 .b2b-section {
     display: grid;
@@ -232,6 +233,27 @@ body {
 .b2b-submit:disabled { opacity: .65; cursor: progress; }
 
 .b2b-note { margin: -12px 0 0; font-size: 12.5px; text-align: center; color: var(--muted); }
+
+/* Tampilan setelah berhasil mendaftar */
+.b2b-success { display: grid; justify-items: center; align-content: center; gap: 14px; padding: 64px 40px; text-align: center; }
+.b2b-success[hidden] { display: none; }
+.b2b-success__icon {
+    display: grid;
+    place-items: center;
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    font-size: 34px;
+    font-weight: 700;
+    color: #fff;
+    background: #15803d;
+}
+.b2b-success__title { margin: 6px 0 0; font-family: 'Alegreya', Georgia, serif; font-size: 30px; color: var(--brand); }
+.b2b-success__text { max-width: 440px; margin: 0; font-size: 15px; line-height: 1.6; color: var(--muted); }
+.b2b-success__text strong { color: var(--ink); }
+.b2b-success__code { margin: 8px 0; padding: 14px 28px; border: 1px dashed var(--brand); border-radius: 12px; background: var(--peach-soft); }
+.b2b-success__code dt { font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.b2b-success__code dd { margin: 4px 0 0; font-size: 24px; font-weight: 700; letter-spacing: .04em; color: var(--brand); }
 
 /* Select2 mengikuti gaya input */
 .select2-container { width: 100% !important; }
