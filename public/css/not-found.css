@@ -1,0 +1,238 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Inter:wght@400;500;600&display=swap');
+
+/* Halaman 404: ilustrasi orang mengopi santai (SVG + animasi CSS, tanpa JavaScript). Tema per brand lewat class body. */
+
+.nf--uddjaya {
+    --bg: #c83d3b;
+    --bg-glow: rgba(255, 214, 170, .28);
+    --ink: #fff7ee;
+    --muted: rgba(255, 247, 238, .82);
+    --code: rgba(255, 247, 238, .9);
+    --button-bg: #fff7ee;
+    --button-ink: #b83332;
+    --shadow: rgba(60, 10, 10, .22);
+    --chair: #fff1dd;
+    --chair-dark: #f1d6b4;
+    --chair-leg: #6e231f;
+    --sweater: #3f2a25;
+    --stripe: #f2b33d;
+    --pants: #2b2a33;
+    --shoe: #fff7ee;
+    --skin: #f6c9a0;
+    --beanie: #f2b33d;
+    --beanie-band: #d99521;
+    --face: #3f2a25;
+    --blush: #ef8f7c;
+    --mug: #ffffff;
+    --coffee: #6b3e26;
+    --steam: #fff7ee;
+    --table: #6e231f;
+    --glass: rgba(255, 255, 255, .45);
+    --plant: #3f9a62;
+    --pot: #fff1dd;
+    --bean: #5a2f1c;
+}
+
+.nf--budiman {
+    --bg: #faf5f0;
+    --bg-glow: rgba(252, 196, 157, .5);
+    --ink: #3f2a25;
+    --muted: #8a6f66;
+    --code: #911b1d;
+    --button-bg: #911b1d;
+    --button-ink: #ffffff;
+    --shadow: rgba(63, 42, 37, .14);
+    --chair: #911b1d;
+    --chair-dark: #6f1416;
+    --chair-leg: #3f2a25;
+    --sweater: #3f2a25;
+    --stripe: #fcc49d;
+    --pants: #8a6f66;
+    --shoe: #3f2a25;
+    --skin: #f3c29b;
+    --beanie: #fff7ee;
+    --beanie-band: #911b1d;
+    --face: #3f2a25;
+    --blush: #f0a08a;
+    --mug: #ffffff;
+    --coffee: #6b3e26;
+    --steam: #c9b2a6;
+    --table: #8a6f66;
+    --glass: rgba(138, 111, 102, .25);
+    --plant: #4c8a5b;
+    --pot: #fcc49d;
+    --bean: #6b3e26;
+}
+
+* { box-sizing: border-box; }
+
+html,
+body { min-height: 100%; margin: 0; }
+
+body.nf {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 32px 18px;
+    font-family: 'Inter', -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+    color: var(--ink);
+    background: radial-gradient(circle at 50% 30%, var(--bg-glow), transparent 55%), var(--bg);
+}
+
+.nf__wrap { width: min(560px, 100%); text-align: center; }
+
+.nf__scene { margin: 0 auto; width: min(460px, 100%); }
+.nf__scene svg { display: block; width: 100%; height: auto; overflow: visible; }
+
+.nf__code {
+    margin: 4px 0 0;
+    font-family: 'Fredoka', 'Inter', sans-serif;
+    font-size: 64px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: .04em;
+    color: var(--code);
+}
+
+.nf__title { margin: 10px 0 8px; font-family: 'Fredoka', 'Inter', sans-serif; font-size: 28px; font-weight: 600; line-height: 1.2; }
+.nf__desc { max-width: 420px; margin: 0 auto 24px; font-size: 15.5px; line-height: 1.6; color: var(--muted); }
+
+.nf__button {
+    display: inline-flex;
+    align-items: center;
+    min-height: 48px;
+    padding: 0 26px;
+    border-radius: 999px;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--button-ink);
+    background: var(--button-bg);
+    box-shadow: 0 10px 24px var(--shadow);
+    transition: transform .15s, box-shadow .15s;
+}
+.nf__button:hover { transform: translateY(-2px); box-shadow: 0 14px 28px var(--shadow); }
+.nf__button:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+
+/* ===== Warna ilustrasi ===== */
+.nf-shadow { fill: var(--shadow); }
+.nf-table { fill: var(--table); }
+.nf-press__glass { fill: var(--glass); }
+.nf-press__coffee { fill: var(--coffee); }
+.nf-press__lid { fill: var(--table); }
+.nf-leaves { fill: var(--plant); }
+.nf-pot { fill: var(--pot); }
+.nf-chair__back { fill: var(--chair-dark); }
+.nf-chair__seat,
+.nf-chair__arm { fill: var(--chair); }
+.nf-chair__leg { fill: var(--chair-leg); }
+.nf-pants { fill: var(--pants); }
+.nf-shoe { fill: var(--shoe); }
+.nf-sweater { fill: var(--sweater); }
+.nf-neck { fill: var(--skin); }
+.nf-sweater__stripe { fill: none; stroke: var(--stripe); stroke-width: 6; stroke-linecap: round; }
+.nf-skin,
+.nf-hand { fill: var(--skin); }
+.nf-beanie { fill: var(--beanie); }
+.nf-beanie__band { fill: var(--beanie-band); }
+.nf-eye { fill: var(--face); }
+.nf-blush { fill: var(--blush); opacity: .7; }
+.nf-mouth { fill: none; stroke: var(--face); stroke-width: 2.4; stroke-linecap: round; }
+.nf-mug { fill: var(--mug); }
+.nf-mug__handle { fill: none; stroke: var(--mug); stroke-width: 5; }
+.nf-mug__coffee { fill: var(--coffee); }
+.nf-steam__line { fill: none; stroke: var(--steam); stroke-width: 3; stroke-linecap: round; opacity: 0; }
+.nf-bean ellipse { fill: var(--bean); }
+.nf-bean path { fill: none; stroke: var(--bg); stroke-width: 1.6; stroke-linecap: round; opacity: .8; }
+
+/* ===== Animasi ===== */
+.nf-mug-group,
+.nf-head,
+.nf-eyes,
+.nf-breath,
+.nf-foot,
+.nf-leaves,
+.nf-bean,
+.nf-steam__line {
+    transform-box: fill-box;
+}
+
+/* Satu siklus 7 detik: diam memegang mug, lalu menyeruput sambil memejamkan mata. */
+.nf-mug-group { transform-origin: 50% 100%; animation: nf-sip 7s ease-in-out infinite; }
+.nf-head { transform-origin: 50% 100%; animation: nf-head 7s ease-in-out infinite; }
+.nf-eyes { transform-origin: 50% 50%; animation: nf-eyes 7s ease-in-out infinite; }
+.nf-breath { transform-origin: 50% 100%; animation: nf-breath 3.5s ease-in-out infinite; }
+.nf-foot { transform-origin: 50% 0; animation: nf-tap 1.4s ease-in-out infinite; }
+.nf-leaves { transform-origin: 50% 100%; animation: nf-sway 4s ease-in-out infinite; }
+
+.nf-steam { animation: nf-steam-group 7s ease-in-out infinite; }
+.nf-steam__line { animation: nf-steam 2.7s ease-out infinite; }
+.nf-steam__line--2 { animation-delay: .9s; }
+.nf-steam__line--3 { animation-delay: 1.8s; }
+
+.nf-bean { animation: nf-float 5s ease-in-out infinite; }
+.nf-bean--2 { animation-delay: -1.7s; animation-duration: 6s; }
+.nf-bean--3 { animation-delay: -3.2s; animation-duration: 4.5s; }
+
+@keyframes nf-sip {
+    0%, 52% { transform: translate(0, 0) rotate(0); }
+    60%, 80% { transform: translate(-1px, -50px) rotate(-8deg); }
+    88%, 100% { transform: translate(0, 0) rotate(0); }
+}
+
+/* Uap disembunyikan saat mug di depan wajah. */
+@keyframes nf-steam-group {
+    0%, 52% { opacity: 1; }
+    56%, 84% { opacity: 0; }
+    90%, 100% { opacity: 1; }
+}
+
+@keyframes nf-head {
+    0%, 52% { transform: rotate(0) translateY(0); }
+    60%, 80% { transform: rotate(-4deg) translateY(2px); }
+    88%, 100% { transform: rotate(0) translateY(0); }
+}
+
+@keyframes nf-eyes {
+    0%, 26% { transform: scaleY(1); }
+    28% { transform: scaleY(.1); }
+    30%, 57% { transform: scaleY(1); }
+    61%, 80% { transform: scaleY(.15); }
+    85%, 100% { transform: scaleY(1); }
+}
+
+@keyframes nf-breath {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-1.5px) scale(1.012); }
+}
+
+@keyframes nf-tap {
+    0%, 60%, 100% { transform: rotate(0); }
+    30% { transform: rotate(-7deg); }
+}
+
+@keyframes nf-sway {
+    0%, 100% { transform: rotate(-4deg); }
+    50% { transform: rotate(5deg); }
+}
+
+@keyframes nf-steam {
+    0% { transform: translateY(4px); opacity: 0; }
+    30% { opacity: .85; }
+    100% { transform: translateY(-10px); opacity: 0; }
+}
+
+@keyframes nf-float {
+    0%, 100% { transform: translateY(0) rotate(0); }
+    50% { transform: translateY(-10px) rotate(12deg); }
+}
+
+@media (max-width: 480px) {
+    .nf__code { font-size: 52px; }
+    .nf__title { font-size: 24px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nf * { animation: none !important; transition: none !important; }
+    .nf-steam__line { opacity: .6; }
+}

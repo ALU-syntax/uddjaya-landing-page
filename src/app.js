@@ -120,8 +120,27 @@ app.use('/', indexRouter);
 app.use('/membership', membershipRouter);
 app.use('/b2b', b2bRouter);
 
+// 404: halaman bergambar untuk browser (tema Budiman di bawah /b2b, selain itu UD DJAYA), JSON untuk fetch/API.
 app.use((req, res) => {
-  return res.status(404).send('Halaman tidak ditemukan.');
+  res.status(404);
+
+  const type = req.accepts(['html', 'json']);
+
+  if (type === 'json') {
+    return res.json({ message: 'Halaman tidak ditemukan.' });
+  }
+
+  if (type !== 'html') {
+    return res.type('text').send('Halaman tidak ditemukan.');
+  }
+
+  const isB2b = req.path === '/b2b' || req.path.startsWith('/b2b/');
+
+  return res.render('not-found', {
+    brand: isB2b ? 'budiman' : 'uddjaya',
+    homeUrl: isB2b ? '/b2b/register' : '/',
+    homeLabel: isB2b ? 'Ke pendaftaran customer B2B' : 'Kembali ke beranda',
+  });
 });
 
 // Pesan untuk request yang ditolak middleware (body-parser dll.). Pesan asli error tidak diteruskan

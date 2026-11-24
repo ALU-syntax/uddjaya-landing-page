@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <meta name="theme-color" content="<%= brand === 'budiman' ? '#faf5f0' : '#c83d3b' %>">
+    <link rel="icon" href="<%= brand === 'budiman' ? '/img/b2b/budiman-logogram-white.png' : '/img/logo.ico' %>">
+    <link rel="stylesheet" href="/css/vendor/normalize.min.css">
+    <link rel="stylesheet" href="/css/not-found.css">
+
+    <title>Halaman tidak ditemukan | <%= brand === 'budiman' ? 'Budiman Roastery' : 'UD DJAYA' %></title>
+</head>
+
+<body class="nf nf--<%= brand %>">
+    <main class="nf__wrap">
+        <figure class="nf__scene" aria-hidden="true">
+            <svg viewBox="0 0 420 300" role="presentation" focusable="false">
+                <!-- Biji kopi melayang -->
+                <g class="nf-bean nf-bean--1"><ellipse cx="70" cy="70" rx="9" ry="12" transform="rotate(-25 70 70)" /><path d="M66 61 q8 9 0 18" transform="rotate(-25 70 70)" /></g>
+                <g class="nf-bean nf-bean--2"><ellipse cx="350" cy="58" rx="7" ry="10" transform="rotate(30 350 58)" /><path d="M347 51 q6 7 0 14" transform="rotate(30 350 58)" /></g>
+                <g class="nf-bean nf-bean--3"><ellipse cx="300" cy="118" rx="6" ry="8" transform="rotate(-10 300 118)" /><path d="M297 112 q5 6 0 12" transform="rotate(-10 300 118)" /></g>
+
+                <ellipse class="nf-shadow" cx="215" cy="272" rx="175" ry="11" />
+
+                <!-- Meja kecil, french press, tanaman -->
+                <g class="nf-table">
+                    <rect x="300" y="203" width="74" height="8" rx="4" />
+                    <rect x="333" y="210" width="8" height="58" rx="3" />
+                    <ellipse cx="337" cy="268" rx="22" ry="4" />
+                </g>
+                <g class="nf-press">
+                    <rect class="nf-press__glass" x="306" y="168" width="22" height="35" rx="4" />
+                    <rect class="nf-press__coffee" x="308" y="182" width="18" height="19" rx="3" />
+                    <rect class="nf-press__lid" x="304" y="163" width="26" height="7" rx="3" />
+                    <rect class="nf-press__lid" x="315" y="153" width="4" height="11" rx="2" />
+                    <circle class="nf-press__lid" cx="317" cy="152" r="4" />
+                </g>
+                <g class="nf-plant">
+                    <g class="nf-leaves">
+                        <path d="M352 178 C340 160 338 146 346 134 C352 150 354 164 352 178 Z" />
+                        <path d="M354 178 C356 156 366 144 378 140 C374 158 364 170 354 178 Z" />
+                        <path d="M353 178 C348 166 352 152 360 144 C362 158 358 170 353 178 Z" />
+                    </g>
+                    <path class="nf-pot" d="M341 177 h26 l-3 26 h-20 z" />
+                </g>
+
+                <!-- Kursi empuk -->
+                <g class="nf-chair">
+                    <rect class="nf-chair__leg" x="113" y="236" width="10" height="32" rx="4" />
+                    <rect class="nf-chair__leg" x="253" y="236" width="10" height="32" rx="4" />
+                    <rect class="nf-chair__back" x="112" y="112" width="152" height="118" rx="44" />
+                    <rect class="nf-chair__seat" x="100" y="196" width="176" height="46" rx="20" />
+                    <rect class="nf-chair__arm" x="86" y="168" width="36" height="76" rx="18" />
+                    <rect class="nf-chair__arm" x="254" y="168" width="36" height="76" rx="18" />
+                </g>
+
+                <!-- Karakter -->
+                <g class="nf-person">
+                    <g class="nf-legs">
+                        <rect class="nf-pants" x="160" y="208" width="24" height="54" rx="12" />
+                        <g class="nf-foot">
+                            <rect class="nf-pants" x="192" y="208" width="24" height="54" rx="12" />
+                            <ellipse class="nf-shoe" cx="208" cy="264" rx="17" ry="7" />
+                        </g>
+                        <ellipse class="nf-shoe" cx="170" cy="264" rx="17" ry="7" />
+                    </g>
+
+                    <g class="nf-breath">
+                        <rect class="nf-sweater" x="146" y="136" width="84" height="84" rx="36" />
+                        <path class="nf-sweater__stripe" d="M150 186 h76" />
+                        <rect class="nf-neck" x="180" y="128" width="16" height="14" rx="6" />
+
+                        <g class="nf-head">
+                            <circle class="nf-skin" cx="188" cy="106" r="33" />
+                            <circle class="nf-skin" cx="155" cy="110" r="6" />
+                            <circle class="nf-skin" cx="221" cy="110" r="6" />
+                            <path class="nf-beanie" d="M154 102 a34 34 0 0 1 68 0 z" />
+                            <rect class="nf-beanie__band" x="151" y="94" width="74" height="13" rx="6.5" />
+                            <circle class="nf-beanie" cx="188" cy="69" r="7" />
+                            <g class="nf-eyes">
+                                <ellipse class="nf-eye" cx="177" cy="114" rx="3" ry="4" />
+                                <ellipse class="nf-eye" cx="199" cy="114" rx="3" ry="4" />
+                            </g>
+                            <circle class="nf-blush" cx="168" cy="124" r="5" />
+                            <circle class="nf-blush" cx="208" cy="124" r="5" />
+                            <path class="nf-mouth" d="M182 125 q6 6 12 0" />
+                        </g>
+
+                        <!-- Mug dipegang dua tangan di depan perut; seluruh grup naik ke mulut saat menyeruput -->
+                        <g class="nf-mug-group">
+                            <g class="nf-steam">
+                                <path class="nf-steam__line nf-steam__line--1" d="M184 166 q-4 -5 0 -10 q4 -5 0 -10" />
+                                <path class="nf-steam__line nf-steam__line--2" d="M191 164 q-4 -5 0 -10 q4 -5 0 -10" />
+                                <path class="nf-steam__line nf-steam__line--3" d="M198 166 q-4 -5 0 -10 q4 -5 0 -10" />
+                            </g>
+                            <path class="nf-mug__handle" d="M203 179 q11 0 11 9 q0 9 -11 9" />
+                            <rect class="nf-mug" x="177" y="172" width="27" height="29" rx="5" />
+                            <ellipse class="nf-mug__coffee" cx="190.5" cy="174" rx="11" ry="2.6" />
+                            <circle class="nf-hand" cx="178" cy="193" r="6" />
+                            <circle class="nf-hand" cx="203" cy="193" r="6" />
+                        </g>
+                    </g>
+                </g>
+            </svg>
+        </figure>
+
+        <section class="nf__text">
+            <p class="nf__code">404</p>
+            <h1 class="nf__title">Halamannya lagi ngopi dulu</h1>
+            <p class="nf__desc">Halaman yang kamu cari tidak ada atau sudah dipindahkan. Santai saja, yuk kembali ke halaman utama.</p>
+            <a class="nf__button" href="<%= homeUrl %>"><%= homeLabel %></a>
+        </section>
+    </main>
+</body>
+
+</html>
