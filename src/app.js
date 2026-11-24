@@ -8,6 +8,7 @@ import helmet from 'helmet';
 import pool from './config/mysql.js';
 import indexRouter from './routes/index.js';
 import membershipRouter from './routes/membership.js';
+import b2bRouter from './routes/b2b.js';
 
 const app = express();
 
@@ -117,6 +118,7 @@ app.get('/healthz', (req, res) => {
 
 app.use('/', indexRouter);
 app.use('/membership', membershipRouter);
+app.use('/b2b', b2bRouter);
 
 app.use((req, res) => {
   return res.status(404).send('Halaman tidak ditemukan.');
