@@ -192,7 +192,14 @@ const store = asyncHandler(async (req, res) => {
     return invalid(res, { turnstile: [turnstile.message] });
   }
 
-  const validation = registrationSchema.safeParse(req.body ?? {});
+  // Perorangan: PIC kosong = orang yang sama dengan nama lengkap (centang "PIC sama dengan nama lengkap").
+  const body = { ...(req.body ?? {}) };
+
+  if (body.type === 'individual' && !String(body.contact_name ?? '').trim()) {
+    body.contact_name = body.name;
+  }
+
+  const validation = registrationSchema.safeParse(body);
 
   if (!validation.success) {
     const errors = {};

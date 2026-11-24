@@ -145,6 +145,12 @@ body {
 .form-field.is-invalid textarea { border-color: var(--danger); }
 
 .field-help { font-size: 12.5px; color: var(--muted); }
+
+/* Centang "PIC sama dengan nama lengkap" (khusus Perorangan) */
+.b2b-check { display: inline-flex; align-items: center; gap: 8px; font-size: 13px !important; font-weight: 500 !important; color: var(--muted) !important; cursor: pointer; }
+.b2b-check[hidden] { display: none; }
+.b2b-check input { width: 16px !important; min-height: 0 !important; height: 16px; margin: 0; padding: 0; accent-color: var(--brand); }
+.form-field input[readonly] { color: var(--muted); background: var(--page); }
 .field-error { font-size: 12.5px; color: var(--danger); }
 
 /* Pilihan jenis usaha */

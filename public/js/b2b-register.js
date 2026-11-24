@@ -34,8 +34,53 @@
     document.getElementById('name').placeholder = placeholder;
   }
 
-  document.querySelectorAll('input[name="type"]').forEach((radio) => radio.addEventListener('change', updateTypeHints));
+  // Perorangan: PIC biasanya orang yang sama, jadi nama PIC bisa disamakan dengan nama lengkap (bisa dilepas).
+  const nameInput = document.getElementById('name');
+  const picInput = document.getElementById('contact_name');
+  const picSameLabel = document.querySelector('[data-pic-same]');
+  const picSame = document.getElementById('pic_same');
+
+  function syncPic() {
+    picInput.readOnly = picSame.checked;
+
+    if (picSame.checked) {
+      picInput.value = nameInput.value;
+      picInput.closest('.form-field').classList.remove('is-invalid');
+      picInput.closest('.form-field').querySelector('.field-error')?.remove();
+    }
+  }
+
+  function updatePicShortcut() {
+    const individual = document.querySelector('input[name="type"]:checked')?.value === 'individual';
+    const wasMirrored = picSame.checked;
+
+    picSameLabel.hidden = !individual;
+    picSame.checked = individual;
+
+    // Pindah ke PT/CV: nama PIC hasil salinan dikosongkan supaya diisi orang yang benar.
+    if (!individual && wasMirrored) {
+      picInput.value = '';
+    }
+
+    syncPic();
+  }
+
+  nameInput.addEventListener('input', () => picSame.checked && syncPic());
+  picSame.addEventListener('change', () => {
+    syncPic();
+
+    if (!picSame.checked) {
+      picInput.focus();
+      picInput.select();
+    }
+  });
+
+  document.querySelectorAll('input[name="type"]').forEach((radio) => radio.addEventListener('change', () => {
+    updateTypeHints();
+    updatePicShortcut();
+  }));
   updateTypeHints();
+  updatePicShortcut();
 
   // Rekening pengirim: nama input diurutkan ulang (accounts[i][field]) setiap baris ditambah/dihapus.
   const accountRows = document.getElementById('account-rows');
