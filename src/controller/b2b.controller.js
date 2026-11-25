@@ -249,7 +249,8 @@ const store = asyncHandler(async (req, res) => {
 
     return res.status(201).json({
       message: 'Pendaftaran berhasil.',
-      data: { code: customer.code, name: data.name },
+      // contacts: tujuan konfirmasi pendaftaran yang dikirim Laravel (b2b:send-registration-notices) — email bila diisi, WhatsApp selalu.
+      data: { code: customer.code, name: data.name, contacts: { whatsapp: data.phone, email: data.email } },
     });
   } catch (error) {
     // Rekening didaftarkan orang lain di antara pengecekan dan penyimpanan (indeks unik provider + nomor).

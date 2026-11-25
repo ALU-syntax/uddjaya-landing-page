@@ -276,6 +276,22 @@
 
     success.querySelector('[data-success-name]').textContent = result.data?.name ?? '';
     success.querySelector('[data-success-code]').textContent = result.data?.code ?? '';
+
+    // Tujuan konfirmasi pendaftaran: WhatsApp selalu, email bila diisi.
+    const contacts = [['WhatsApp', result.data?.contacts?.whatsapp], ['Email', result.data?.contacts?.email]]
+      .filter(([, value]) => value);
+    const list = success.querySelector('[data-success-contacts]');
+    list.replaceChildren(...contacts.map(([label, value]) => {
+      const item = document.createElement('li');
+      const name = document.createElement('span');
+      const target = document.createElement('strong');
+      name.textContent = label;
+      target.textContent = value;
+      item.append(name, target);
+
+      return item;
+    }));
+    success.querySelector('[data-success-notice]').hidden = contacts.length === 0;
     window.iziToast?.destroy();
     form.hidden = true;
     success.hidden = false;
