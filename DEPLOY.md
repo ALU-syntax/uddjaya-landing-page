@@ -68,14 +68,26 @@ Gunakan site key untuk frontend dan secret key untuk backend.
 Aplikasi ini akan menolak submit registrasi di production jika Turnstile belum
 lengkap atau token tidak valid.
 
-## 4. Install Dependency
+## 4. Install Node (nvm) dan Dependency
+
+Versi Node ditetapkan di `.nvmrc`. Pasang nvm sekali di VPS (sebagai user yang
+menjalankan aplikasi, bukan root):
 
 ```bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+source ~/.bashrc
+```
+
+Lalu di folder aplikasi:
+
+```bash
+nvm install          # membaca .nvmrc
+nvm alias default 22
 corepack enable
 pnpm install --prod --frozen-lockfile
 ```
 
-Jika `pnpm` belum tersedia:
+Jika `pnpm` belum tersedia lewat corepack:
 
 ```bash
 npm install -g pnpm
@@ -84,6 +96,9 @@ pnpm install --prod --frozen-lockfile
 
 ## 5. Jalankan dengan PM2
 
+PM2 harus diinstal di bawah Node dari nvm (jangan campur dengan PM2 dari
+`apt`/NodeSource):
+
 ```bash
 npm install -g pm2
 pm2 start ecosystem.config.cjs
@@ -91,8 +106,25 @@ pm2 save
 pm2 startup
 ```
 
-Perintah `pm2 startup` akan menampilkan command lanjutan. Jalankan command itu
-agar PM2 otomatis hidup setelah VPS restart.
+Perintah `pm2 startup` akan menampilkan command `sudo ...` lanjutan. Jalankan
+command itu agar PM2 otomatis hidup setelah VPS restart.
+
+Saat mengganti versi Node (mengubah `.nvmrc`), layanan startup PM2 masih
+menunjuk path Node lama, jadi ulangi:
+
+```bash
+nvm install
+npm install -g pm2
+pm2 update
+pm2 unstartup        # jalankan command sudo yang ditampilkan
+pm2 startup          # jalankan command sudo yang ditampilkan
+pm2 save
+```
+
+Jika VPS sudah punya Node/PM2 dari `apt`/NodeSource yang menjalankan aplikasi
+lain, pindahkan semua aplikasi itu ke PM2 di bawah nvm sekaligus (stop, start
+ulang dari ecosystem masing-masing, `pm2 save`), karena satu daemon PM2 dipakai
+bersama. Lakukan di luar jam operasional.
 
 Perintah operasional:
 
