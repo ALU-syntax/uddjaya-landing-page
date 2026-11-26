@@ -1,5 +1,5 @@
 import pool from '../config/mysql.js';
-import { regionLevels } from '../constants/b2b.js';
+import { portalReminderDays, regionLevels, reminderChannelEmail, reminderChannelWhatsApp } from '../constants/b2b.js';
 
 // Penulisan ke tabel b2b_* milik backoffice (repo pos-udjay). Urutan & isi kolom mengikuti
 // App\Services\B2b\CustomerService::create + SequenceService::customerCode + ActivityLogger.
@@ -184,18 +184,34 @@ async function nextCustomerCode(connection, now) {
   return `CUS-B2B-${String(number).padStart(4, '0')}`;
 }
 
+/**
+ * Pengaturan reminder pendaftar (format sama dengan cast array Laravel): channel mengikuti kontak yang diisi,
+ * semua jadwal + harian setelah lewat jatuh tempo. Tanpa email dan telepon = mati dengan daftar kosong.
+ */
+export function portalReminderSettings(data) {
+  const channels = [
+    data.email ? reminderChannelEmail : null,
+    data.phone ? reminderChannelWhatsApp : null,
+  ].filter(Boolean);
+  const enabled = channels.length > 0;
+
+  return { enabled, channels, days: enabled ? portalReminderDays : [] };
+}
+
 /** = CustomerAccount::summary(): "BCA 1234567890 a.n. PT Maju". */
 const accountSummary = (account, providers) =>
   `${providers.get(account.provider)?.name ?? account.provider.toUpperCase()} ${account.account_number} a.n. ${account.account_name}`;
 
 /**
  * Simpan pendaftar sebagai customer B2B aktif beserta rekeningnya, lalu catat log "customer.created".
- * Pengaturan reminder diisi seperti form backoffice yang tidak dicentang (mati, daftar kosong).
+ * Reminder langsung aktif dengan semua jadwal (portalReminderDays + harian setelah lewat jatuh tempo) lewat channel
+ * yang kontaknya diisi: email bila ada, WhatsApp bila ada telepon. Tanpa kontak sama sekali = reminder mati.
  * `providers` = hasil findActiveAccountProviders(), untuk jenis rekening & ringkasan log.
  */
 export async function createPortalCustomer(data, providers, connection) {
   const now = wibNow();
   const code = await nextCustomerCode(connection, now);
+  const reminder = portalReminderSettings(data);
   const [result] = await connection.query(
     `
       INSERT INTO b2b_customers (
@@ -204,7 +220,7 @@ export async function createPortalCustomer(data, providers, connection) {
         reminder_enabled, reminder_channels, reminder_days, reminder_overdue_daily,
         notes, is_active, registered_via, created_by, modified_by, created_at, updated_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, '[]', '[]', 0, NULL, 1, 'portal', NULL, NULL, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, 1, 'portal', NULL, NULL, ?, ?)
     `,
     [
       code,
@@ -220,6 +236,10 @@ export async function createPortalCustomer(data, providers, connection) {
       data.district_code,
       data.village_code,
       data.postal_code,
+      reminder.enabled ? 1 : 0,
+      JSON.stringify(reminder.channels),
+      JSON.stringify(reminder.days),
+      reminder.enabled ? 1 : 0,
       now,
       now,
     ],

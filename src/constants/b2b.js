@@ -13,6 +13,12 @@ export const accountTypeEwallet = 'ewallet';
 
 // Daftar bank / e-wallet dibaca dari tabel master account_providers (sama dengan backoffice), bukan dari kode.
 
+// Reminder pendaftar form umum: semua jadwal Customer::REMINDER_DAYS (H-7, H-3, H-1, Hari H) + harian setelah lewat
+// jatuh tempo (reminder_overdue_daily; di Laravel harian s.d. H+7 lalu mingguan). Kunci = Customer::REMINDER_CHANNELS.
+export const portalReminderDays = [-7, -3, -1, 0];
+export const reminderChannelEmail = 'email';
+export const reminderChannelWhatsApp = 'whatsapp';
+
 // = CustomerAccount::MAX_PER_CUSTOMER
 export const maxAccountsPerCustomer = 10;
 
