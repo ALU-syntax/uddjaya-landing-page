@@ -257,9 +257,6 @@ body {
 .b2b-success__title { margin: 6px 0 0; font-family: 'Alegreya', Georgia, serif; font-size: 30px; color: var(--brand); }
 .b2b-success__text { max-width: 440px; margin: 0; font-size: 15px; line-height: 1.6; color: var(--muted); }
 .b2b-success__text strong { color: var(--ink); }
-.b2b-success__code { margin: 8px 0; padding: 14px 28px; border: 1px dashed var(--brand); border-radius: 12px; background: var(--peach-soft); }
-.b2b-success__code dt { font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
-.b2b-success__code dd { margin: 4px 0 0; font-size: 24px; font-weight: 700; letter-spacing: .04em; color: var(--brand); }
 .b2b-success__notice { display: grid; justify-items: center; gap: 10px; }
 .b2b-success__notice[hidden] { display: none; }
 .b2b-success__contacts { display: grid; gap: 6px; width: min(100%, 360px); margin: 0; padding: 0; list-style: none; }

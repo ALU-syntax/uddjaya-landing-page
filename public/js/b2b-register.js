@@ -109,29 +109,57 @@
 
     accountRows.appendChild(accountTemplate.content.cloneNode(true));
     reindexAccounts();
-    accountRows.lastElementChild.querySelector('[data-field="provider"]').focus();
+
+    const provider = accountRows.lastElementChild.querySelector('[data-field="provider"]');
+
+    initProviderSelect(provider);
+    // Dengan select2, fokus ke kotak pilihannya (select asli disembunyikan).
+    (window.jQuery?.(provider).data('select2') ? provider.nextElementSibling?.querySelector('.select2-selection') : provider)?.focus();
   });
 
   accountRows.addEventListener('click', (event) => {
     if (event.target.closest('.b2b-account__remove')) {
-      event.target.closest('.b2b-account').remove();
+      const row = event.target.closest('.b2b-account');
+      const $provider = window.jQuery?.(row.querySelector('[data-field="provider"]'));
+
+      if ($provider?.data('select2')) {
+        $provider.select2('destroy');
+      }
+      row.remove();
       reindexAccounts();
     }
   });
 
-  // E-wallet memakai nomor HP, bank memakai nomor rekening.
-  accountRows.addEventListener('change', (event) => {
-    if (event.target.dataset.field !== 'provider') {
+  // Pilihan bank / e-wallet bisa dicari seperti dropdown wilayah. Tanpa select2 (CDN gagal) tetap select biasa.
+  function initProviderSelect(select) {
+    const $ = window.jQuery;
+
+    if (!$?.fn?.select2 || $(select).data('select2')) {
       return;
     }
 
-    const isEwallet = ewalletProviders.includes(event.target.value);
-    const row = event.target.closest('.b2b-account');
+    $(select).select2({
+      width: '100%',
+      placeholder: select.dataset.placeholder,
+      language: { noResults: () => 'Tidak ditemukan' },
+    });
+  }
+
+  // E-wallet memakai nomor HP, bank memakai nomor rekening.
+  function updateAccountNumberField(provider) {
+    const isEwallet = ewalletProviders.includes(provider.value);
+    const row = provider.closest('.b2b-account');
     const number = row.querySelector('[data-field="account_number"]');
 
     row.querySelector(`label[for="${number.id}"]`).textContent = isEwallet ? 'Nomor HP e-wallet' : 'Nomor rekening';
     number.placeholder = isEwallet ? '081234567890' : '1234567890';
     number.maxLength = isEwallet ? 15 : 20;
+  }
+
+  accountRows.addEventListener('change', (event) => {
+    if (event.target.dataset.field === 'provider') {
+      updateAccountNumberField(event.target);
+    }
   });
 
   reindexAccounts();
@@ -143,6 +171,12 @@
     if (!$?.fn?.select2) {
       return;
     }
+
+    // Event change dari select2 dipicu lewat jQuery, tidak sampai ke listener native di atas.
+    $(accountRows).on('change', '[data-field="provider"]', function () {
+      updateAccountNumberField(this);
+    });
+    accountRows.querySelectorAll('[data-field="provider"]').forEach(initProviderSelect);
 
     const regions = $('.js-region');
 
@@ -249,9 +283,15 @@
 
   form.addEventListener('input', (event) => clearError(event.target.closest('.form-field')));
   form.addEventListener('change', (event) => clearError(event.target.closest('.form-field')));
-  window.addEventListener('load', () => window.jQuery?.('.js-region').on('change', function () {
-    clearError(this.closest('.form-field'));
-  }));
+  // Pilihan select2 (wilayah, bank / e-wallet) memicu change lewat jQuery, jadi errornya dibersihkan di sini.
+  window.addEventListener('load', () => {
+    window.jQuery?.('.js-region').on('change', function () {
+      clearError(this.closest('.form-field'));
+    });
+    window.jQuery?.(accountRows).on('change', '[data-field="provider"]', function () {
+      clearError(this.closest('.form-field'));
+    });
+  });
 
   function payload() {
     const value = (name) => form.elements[name]?.value ?? '';
@@ -275,7 +315,6 @@
     const success = document.getElementById('b2b-success');
 
     success.querySelector('[data-success-name]').textContent = result.data?.name ?? '';
-    success.querySelector('[data-success-code]').textContent = result.data?.code ?? '';
 
     // Tujuan konfirmasi pendaftaran: WhatsApp selalu, email bila diisi.
     const contacts = [['WhatsApp', result.data?.contacts?.whatsapp], ['Email', result.data?.contacts?.email]]

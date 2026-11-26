@@ -152,7 +152,7 @@ const register = asyncHandler(async (req, res) => {
   const providers = await findActiveAccountProviders();
 
   res.render('b2b/register', {
-    title: 'Pendaftaran Customer B2B',
+    title: 'Pendaftaran Customer',
     customerTypes,
     providerGroups: groupAccountProviders(providers),
     ewalletProviderCodes: [...providers.values()].filter((provider) => provider.type === accountTypeEwallet).map((provider) => provider.code),
@@ -245,12 +245,12 @@ const store = asyncHandler(async (req, res) => {
   }
 
   try {
-    const customer = await runInTransaction((connection) => createPortalCustomer({ ...data, accounts }, providers, connection));
+    await runInTransaction((connection) => createPortalCustomer({ ...data, accounts }, providers, connection));
 
     return res.status(201).json({
       message: 'Pendaftaran berhasil.',
       // contacts: tujuan konfirmasi pendaftaran yang dikirim Laravel (b2b:send-registration-notices) — email bila diisi, WhatsApp selalu.
-      data: { code: customer.code, name: data.name, contacts: { whatsapp: data.phone, email: data.email } },
+      data: { name: data.name, contacts: { whatsapp: data.phone, email: data.email } },
     });
   } catch (error) {
     // Rekening didaftarkan orang lain di antara pengecekan dan penyimpanan (indeks unik provider + nomor).

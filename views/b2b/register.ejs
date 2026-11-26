@@ -149,7 +149,7 @@
                     </div>
                 <% } %>
 
-                <button class="b2b-submit" type="submit">Daftar sebagai Customer B2B</button>
+                <button class="b2b-submit" type="submit">Daftar</button>
                 <p class="b2b-note">Dengan mendaftar, Anda menyetujui data ini disimpan untuk keperluan transaksi dengan Budiman Roastery.</p>
             </form>
 
@@ -157,15 +157,10 @@
                 <div class="b2b-success__icon" aria-hidden="true">&#10003;</div>
                 <h2 class="b2b-success__title">Pendaftaran berhasil</h2>
                 <p class="b2b-success__text">Terima kasih, <strong data-success-name></strong>. Data usaha Anda sudah kami terima.</p>
-                <dl class="b2b-success__code">
-                    <dt>Kode customer</dt>
-                    <dd data-success-code></dd>
-                </dl>
                 <div class="b2b-success__notice" data-success-notice hidden>
-                    <p class="b2b-success__text">Konfirmasi berisi kode customer dan nomor admin untuk pemesanan akan kami kirim dalam beberapa menit ke:</p>
+                    <p class="b2b-success__text">Konfirmasi pendaftaran beserta nomor admin untuk pemesanan akan kami kirim dalam beberapa menit ke:</p>
                     <ul class="b2b-success__contacts" data-success-contacts></ul>
                 </div>
-                <p class="b2b-success__text">Simpan kode ini untuk keperluan pemesanan.</p>
             </section>
         </section>
     </main>
@@ -174,8 +169,8 @@
         <div class="b2b-account">
             <div class="form-field">
                 <label>Bank / e-wallet</label>
-                <select data-field="provider" required>
-                    <option value="" selected disabled>Pilih</option>
+                <select data-field="provider" class="js-provider" data-placeholder="Pilih" required>
+                    <option value=""></option>
                     <% providerGroups.forEach((group) => { %>
                         <optgroup label="<%= group.label %>">
                             <% group.options.forEach((option) => { %>
